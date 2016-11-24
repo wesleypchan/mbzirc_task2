@@ -1,0 +1,22 @@
+<package>
+  <name>mbzirc_task2</name>
+  <version>1.0.0</version>
+  <description>
+      Software of JSK lab in mbzirc challenge.
+  </description>
+
+  <maintainer email="mbzirc-team@jsk.imi.i.u-tokyo.ac.jp">JSK </maintainer>
+
+
+  <license>BSD</license>
+
+  <url type="website">http://www.jsk.t.u-tokyo.ac.jp/</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>jsk_mbzirc_board</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
