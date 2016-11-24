@@ -1,0 +1,5 @@
+#ignore some of the files
+*~
+*.user
+.idea
+
