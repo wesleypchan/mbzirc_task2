@@ -1,5 +1,5 @@
 <launch>
-  <arg name="port" default="/dev/jskboard" />
+  <arg name="port" default="/dev/jsk_board" />
   <arg name="baud" default="115200" />
 
   <node pkg="jsk_mbzirc_board" type="serial_board.py" name="serial_board" output="screen">

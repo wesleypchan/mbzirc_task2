@@ -1,4 +1,4 @@
-#!/user/bin/env python
+#!/usr/bin/env python
 
 import rospy
 import serial
@@ -15,10 +15,12 @@ class Serial_board:
         self.serialtimeout = 0.01
         self.updaterate = 20    #20hz
         #initialize the parameters
-        rospy.get_param('~port', self.port)
-        rospy.get_param('~baud', self.baud)
-        rospy.get_param('~serialtimeout', self.serialtimeout)
-        rospy.get_param('~updaterate', self.updaterate)
+        self.port = rospy.get_param("~port", self.port)
+        self.baud = rospy.get_param('~baud', self.baud)
+        self.serialtimeout = rospy.get_param('~serialtimeout', self.serialtimeout)
+        self.updaterate = rospy.get_param('~updaterate', self.updaterate)
+        rospy.loginfo("port is : %s" % self.port)
+        rospy.loginfo("baudrate is: %s " % self.baud )
         self.ser = serial.Serial(self.port, self.baud, timeout=self.serialtimeout)
         #if not (self.ser._isOpen()):
          #   rospy.ROSException("Cant open port %s" % self.baud)
