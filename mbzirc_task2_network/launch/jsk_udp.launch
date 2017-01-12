@@ -11,32 +11,36 @@
           output="screen"
           name="image_streamer">
       <rosparam subst_value="true">
-        message: jsk_network_tools/Remote_Image
+        message: jsk_network_tools/Remote_LargeData
         to_port: $(arg IMAGE_PORT)
         send_rate: 25
         to_ip: "$(arg REMOTE_IP)"
       </rosparam>
 
     </node>
-    <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
-          output="screen"
-          name="joy_receiver">
-      <rosparam subst_value="true">
-        message: jsk_network_tools/Remote_Joy
-        receive_port: $(arg JOY_PORT)
-        receive_ip: "$(arg LOCAL_IP)"
-        event_driven: true
-      </rosparam>
-    </node>
+    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py" -->
+    <!--       output="screen" -->
+    <!--       name="joy_receiver"> -->
+    <!--   <rosparam subst_value="true"> -->
+    <!--     message: jsk_network_tools/Remote_Joy -->
+    <!--     receive_port: $(arg JOY_PORT) -->
+    <!--     receive_ip: "$(arg LOCAL_IP)" -->
+    <!--     event_driven: true -->
+    <!--   </rosparam> -->
+    <!-- </node> -->
 
   </group>
 
-  <group>
-    <node name="republish" type="republish" pkg="image_transport" output="screen" args="raw in:=/image_zenmus compressed out:=/image_zenmus">
-      <remap from="/image_zenmus/compressed" to="/image_zenmus_c" />
-      <remap from="/image_zenmus_c/parameter_descriptions" to="/parameter_descriptions" />
-      <remap from="/image_zenmus_c/parameter_updates" to="/parameter_updates" />
-    </node>
+  <!-- compress images -->
+  <group ns="multisense">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/multisense/left/image_rect_color compressed out:=/multisense/left/image_rect_color"/>
+  </group>
+  <group ns="handeye">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/handeye/image_raw compressed out:=/handeye/image_raw"/>
   </group>
 
 </launch>

@@ -6,22 +6,22 @@
   <arg name="JOY_PORT" default="1119"/>
 
   <group ns="silverhammer">
-    <!-- FC to OCS -->
-    <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py"
-          output="screen"
-          name="joy_streamer">
-      <rosparam subst_value="true">
-        message: jsk_network_tools/Remote_Joy
-        to_port: $(arg JOY_PORT)
-        send_rate: 15
-        to_ip: "$(arg REMOTE_IP)"
-      </rosparam>
-    </node>
+    <!-- OCS to FC -->
+    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py" -->
+    <!--       output="screen" -->
+    <!--       name="joy_streamer"> -->
+    <!--   <rosparam subst_value="true"> -->
+    <!--     message: jsk_network_tools/Remote_Joy -->
+    <!--     to_port: $(arg JOY_PORT) -->
+    <!--     send_rate: 15 -->
+    <!--     to_ip: "$(arg REMOTE_IP)" -->
+    <!--   </rosparam> -->
+    <!-- </node> -->
     <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
           output="screen"
           name="image_receiver">
       <rosparam subst_value="true">
-        message: jsk_network_tools/Remote_Image
+        message: jsk_network_tools/Remote_LargeData
         receive_port: $(arg IMAGE_PORT)
         receive_ip: "$(arg LOCAL_IP)"
         event_driven: true
@@ -30,14 +30,15 @@
 
   </group>
 
-  <group>
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_zenmus_c /image_receive/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/parameter_descriptions /image_receive/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/parameter_updates /image_receive/compressed/parameter_updates" />
-
-    <node name="image_receive" type="image_view" pkg="image_view"
-          output="screen" args="image:=/image_receive compressed" >
-    </node>
+  <group ns="multisense">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed /multisense/left/image_rect_color/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/parameter_descriptions /multisense/left/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/parameter_updates /image_receive/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/multisense/left/image_rect_color/compressed raw out:=/multisense/left/image_rect_color"/>
   </group>
 
 </launch>
