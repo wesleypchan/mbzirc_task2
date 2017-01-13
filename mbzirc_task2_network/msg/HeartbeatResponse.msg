@@ -1,2 +1,0 @@
-std_msgs/Header header
-jsk_network_tools/Heartbeat heartbeat
