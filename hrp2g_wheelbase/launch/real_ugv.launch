@@ -1,0 +1,44 @@
+<launch>
+  <arg name="headless" default="false"/>
+  <arg name="teleopUGV" default="true"/>
+  <arg name="teleopjoy" default="true"/>
+  <arg name="gopose" default="true"/>
+
+  <arg name="port" default="/dev/jskmikon" />
+  <arg name="baud" default="921600" />
+  <node pkg="rosserial_server" type="serial_node" name="rosserial_server" output="screen">
+    <param name="port" value="$(arg port)" />
+    <param name="baud" value="$(arg baud)" />
+  </node>
+  <node pkg="rosserial_python" type="message_info_service.py" name="rosserial_message_info" output="screen"/>
+
+  <group unless="$(arg headless)" >
+
+	    <group if="$(arg teleopjoy)" >
+	       <node pkg="hrp2g_wheelbase" type="uav_teleop_joy" name="ugv_teleop_joy">
+		  <param name="teleopUGV" value="$(arg teleopUGV)"/>
+		  <remap from="teleopUGV" to="ugv_teleop_joy/teleopUGV"/>
+	       </node> 
+	    <node pkg="joy" type="joy_node" name="teleop_joy" >
+	      <remap from="joy" to="teleop_joy" />
+	    </node>
+	    
+	   </group>
+
+	  <group unless="$(arg teleopjoy)" >
+	    <node pkg="hrp2g_wheelbase" type="uav_teleop_keyboard" name="ugv_teleop_keyboard"
+		  launch-prefix="xterm -e">
+	      <param name="teleopUGV" value="$(arg teleopUGV)"/>
+	      <remap from="teleopUGV" to="ugv_teleop_keyboard/teleopUGV"/>
+	    </node> 
+  	   </group>
+
+  </group>
+
+	<group if="$(arg gopose)" >
+	       <node pkg="hrp2g_wheelbase" type="goblin_gopose" name="goblin_gopose">
+	       </node> 
+   	</group>
+
+
+</launch>
