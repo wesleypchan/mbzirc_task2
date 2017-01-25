@@ -1,0 +1,7 @@
+#request, x: linear, theta: angular, time: goposetime
+float32 x
+float32 theta
+float32 time
+---
+#response, 1,2,3,4
+int8 status

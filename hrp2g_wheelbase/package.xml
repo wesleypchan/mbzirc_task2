@@ -1,0 +1,19 @@
+<package>
+  <name>hrp2g_wheelbase</name>
+  <version>0.0.1</version>
+  <description>
+    JSK mbzirc hrp2 goblin move base	
+  </description>
+  <author>Xiangyu Chen</author>
+  <maintainer email="xychen@jsk.imi.i.u-tokyo.ac.jp">xychen</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>message_runtime</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>rosserial_stm</run_depend>
+</package>
+
+

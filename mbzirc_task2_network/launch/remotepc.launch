@@ -1,0 +1,55 @@
+<!-- -*- mode: xml -*- -->
+<launch>
+  <arg name="REMOTE_IP" default="192.168.96.190"/>
+  <arg name="LOCAL_IP" default="192.168.97.88"/>
+  <arg name="IMAGE_PORT" default="1118"/>
+  <arg name="JOY_PORT" default="1119"/>
+
+  <group ns="silverhammer">
+    <!-- OCS to FC -->
+    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py" -->
+    <!--       output="screen" -->
+    <!--       name="joy_streamer"> -->
+    <!--   <rosparam subst_value="true"> -->
+    <!--     message: jsk_network_tools/Remote_Joy -->
+    <!--     to_port: $(arg JOY_PORT) -->
+    <!--     send_rate: 15 -->
+    <!--     to_ip: "$(arg REMOTE_IP)" -->
+    <!--   </rosparam> -->
+    <!-- </node> -->
+    <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
+          output="screen"
+          name="image_receiver">
+      <rosparam subst_value="true">
+        message: mbzirc_task2_network/Remote_LargeData
+        receive_port: $(arg IMAGE_PORT)
+        receive_ip: "$(arg LOCAL_IP)"
+        event_driven: true
+      </rosparam>
+    </node>
+
+  </group>
+
+  <group ns="multisense">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed /multisense/left/image_rect_color/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_descriptions /multisense/left/image_rect_color/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_updates /multisense/left/image_rect_color/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/multisense/left/image_rect_color raw out:=/multisense/left/image_rect_color"/>
+  </group>
+
+  <group ns="handeye">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed /handeye/image_raw/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed/parameter_descriptions /handeye/image_raw/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed/parameter_updates /handeye/image_raw/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/handeye/image_raw raw out:=/handeye/image_raw"/>
+  </group>
+
+</launch>
