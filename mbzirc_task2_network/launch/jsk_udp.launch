@@ -11,7 +11,7 @@
           output="screen"
           name="image_streamer">
       <rosparam subst_value="true">
-        message: mbzirc_task2_network/Remote_LargeData
+        message: mbzirc_task2_network/Remote_LargeDataHRP2
         to_port: $(arg IMAGE_PORT)
         send_rate: 25
         to_ip: "$(arg REMOTE_IP)"
@@ -36,11 +36,38 @@
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
           args="raw in:=/multisense/left/image_rect_color compressed out:=/multisense/left/image_rect_color"/>
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/multisense/depth compressed out:=/multisense/depth"/>
   </group>
   <group ns="handeye">
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/handeye/image_raw compressed out:=/handeye/image_raw"/>
+          args="raw in:=/handeye/image_color compressed out:=/handeye/image_color"/>
   </group>
+  <group ns="image_clipper_panel">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/image_clipper_panel/output compressed out:=/image_clipper_panel/output"/>
+  </group>
+  <group ns="luminance_homogenizer_panel">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/luminance_homogenizer_panel/output compressed out:=/luminance_homogenizer_panel/output"/>
+  </group>
+  <group ns="meanshift_filtering_panel">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/meanshift_filtering_panel/output compressed out:=/meanshift_filtering_panel/output"/>
+  </group>
+
+  <group ns="wrench_detector">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image"/>
+  </group>
+
+
+
 
 </launch>
