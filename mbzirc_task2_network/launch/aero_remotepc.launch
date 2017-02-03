@@ -40,11 +40,6 @@
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
-
-    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed /zed/depth/depth_registered/compressed" />
-    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed/parameter_descriptions /zed/depth/depth_registered/compressed/parameter_descriptions" />
-    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed/parameter_updates /zed/depth/depth_registered/compressed/parameter_updates" />
-    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" />
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"

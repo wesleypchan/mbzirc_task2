@@ -1,13 +1,13 @@
 <!-- -*- mode: xml -*- -->
 <launch>
-  <arg name="REMOTE_IP" default="192.168.97.188"/>
-  <arg name="LOCAL_IP" default="192.168.96.190"/>
+  <arg name="REMOTE_IP" default="192.168.97.133"/>
+  <arg name="LOCAL_IP" default="192.168.96.188"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
   <arg name="USE_LARGEDATA" default="true"/>
 
-  <arg name="msg_file" value="mbzirc_task2_network/Remote_LargeDataAERO" if="$(arg USE_LARGEDATA)"/>
-  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallDataAERO" unless="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
   <group ns="silverhammer">
     <!-- FC to OCS -->
@@ -15,7 +15,7 @@
           output="screen"
           name="image_streamer" respawn="true">
       <rosparam subst_value="true">
-        message: $(arg msg_file)
+        message: "$(arg msg_file)"
         to_port: $(arg IMAGE_PORT)
         send_rate: 25
         to_ip: "$(arg REMOTE_IP)"
@@ -36,6 +36,11 @@
   </group>
 
   <!-- compress images -->
+  <group ns="zed">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/zed/left/image_rect_color compressed out:=/zed/left/image_rect_color" respawn="true"/>
+  </group>
   <group ns="handeye">
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
