@@ -7,7 +7,7 @@
   <arg name="USE_LARGEDATA" default="true"/>
 
   <arg name="msg_file" value="mbzirc_task2_network/Remote_LargeDataHRP2" if="$(arg USE_LARGEDATA)"/>
-  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallData$HRP2" unless="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallDataHRP2" unless="$(arg USE_LARGEDATA)"/>
 
   <group ns="silverhammer">
     <!-- FC to OCS -->

@@ -12,13 +12,16 @@ find_package(catkin REQUIRED
   tf2_msgs
   jsk_recognition_msgs
   nav_msgs
+  trajectory_msgs
 )
 
 
 add_message_files(
    FILES
-   Remote_LargeDataHRP2.msg
-   Remote_SmallDataHRP2.msg
+   HRP22Remote_LargeData.msg
+   HRP22Remote_SmallData.msg
+   AERO2Remote_LargeData.msg
+   Remote2AERO.msg
 )
 
 generate_messages(
@@ -29,6 +32,7 @@ generate_messages(
    tf2_msgs
    jsk_recognition_msgs
    nav_msgs
+   trajectory_msgs
 )
 
 catkin_package(

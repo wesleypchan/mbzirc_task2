@@ -34,22 +34,24 @@
 
   </group>
 
-  <group ns="multisense">
+  <group ns="zed">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed /multisense/left/image_rect_color/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_descriptions /multisense/left/image_rect_color/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_updates /multisense/left/image_rect_color/compressed/parameter_updates" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed /zed/left/image_rect_color/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
+    <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
 
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed /multisense/depth/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed/parameter_descriptions /multisense/depth/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed/parameter_updates /multisense/depth/compressed/parameter_updates" />
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed /zed/depth/depth_registered/compressed" />
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed/parameter_descriptions /zed/depth/depth_registered/compressed/parameter_descriptions" />
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressed/parameter_updates /zed/depth/depth_registered/compressed/parameter_updates" />
+    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" />
     <!-- decompress images -->
-    <node name="republish" type="republish" pkg="image_transport"
+    <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
-          args="compressed in:=/multisense/left/image_rect_color raw out:=/multisense/left/image_rect_color"/>
-    <node name="republish" type="republish" pkg="image_transport"
+          args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
+    <node name="republish_depth" type="republish" pkg="image_transport"
           output="screen"
-          args="compressed in:=/multisense/depth raw out:=/multisense/depth"/>
+          args="compressed in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered"/>
   </group>
 
   <group ns="handeye">
@@ -107,24 +109,15 @@
           args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
   </group>
 
-  <group ns="multisense">
+  <group ns="zed">
     <node pkg="nodelet" type="nodelet" name="stereo_manager"
           args="manager" />
-    <node pkg="nodelet" type="nodelet" name="point_cloud_xyz"
-          args="load depth_image_proc/point_cloud_xyz stereo_manager">
-      <remap from="camera_info" to="depth/camera_info" />
-      <remap from="image_rect" to="depth" />
-      <remap from="points" to="organized_image_points2" />
-      <rosparam>
-        queue_size: 100
-      </rosparam>
-    </node>
     <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"
           args="load depth_image_proc/point_cloud_xyzrgb stereo_manager">
       <remap from="rgb/camera_info" to="/$(arg namespace)/left/camera_info" />
       <remap from="rgb/image_rect_color" to="left/image_rect_color" />
-      <remap from="depth_registered/image_rect" to="depth" />
-      <remap from="depth_registered/points" to="organized_image_points2_color" />
+      <remap from="depth_registered/image_rect" to="depth/depth_registered" />
+      <remap from="depth_registered/points" to="point_cloud/cloud_registered" />
       <rosparam>
         queue_size: 100
       </rosparam>

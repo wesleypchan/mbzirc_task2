@@ -1,0 +1,5 @@
+trajectory_msgs/JointTrajectory aero_controller__command
+trajectory_msgs/JointTrajectory aero_controller__wheel_command
+std_msgs/Bool aero_controller__wheel_servo
+geometry_msgs/PoseStamped move_base_simple__goal
+geometry_msgs/TwistStamped move_base_simple__velocity
