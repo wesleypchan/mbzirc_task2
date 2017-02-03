@@ -10,13 +10,16 @@ find_package(catkin REQUIRED
   image_geometry
   compressed_image_transport
   tf2_msgs
+  jsk_recognition_msgs
+  nav_msgs
 )
 
 
 add_message_files(
    FILES
-   Remote_LargeData.msg
- )
+   Remote_LargeDataHRP2.msg
+   Remote_SmallDataHRP2.msg
+)
 
 generate_messages(
    DEPENDENCIES
@@ -24,7 +27,9 @@ generate_messages(
    sensor_msgs
    dynamic_reconfigure
    tf2_msgs
- )
+   jsk_recognition_msgs
+   nav_msgs
+)
 
 catkin_package(
   CATKIN_DEPENDS std_msgs sensor_msgs dynamic_reconfigure
