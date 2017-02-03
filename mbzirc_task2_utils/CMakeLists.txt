@@ -7,10 +7,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
 )
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   LIBRARIES mbzirc_task2_utils
   CATKIN_DEPENDS jsk_tools mbzirc_task2_network roscpp
-  DEPENDS system_lib
+  #DEPENDS system_lib
 )
 
 include_directories(
