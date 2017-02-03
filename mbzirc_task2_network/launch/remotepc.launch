@@ -4,6 +4,10 @@
   <arg name="LOCAL_IP" default="192.168.97.88"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
+  <arg name="USE_LARGEDATA" default="true"/>
+
+  <arg name="msg_file" value="mbzirc_task2_network/Remote_LargeDataHRP2" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallData$HRP2" unless="$(arg USE_LARGEDATA)"/>
 
   <group ns="silverhammer">
     <!-- OCS to FC -->
@@ -21,7 +25,7 @@
           output="screen"
           name="image_receiver">
       <rosparam subst_value="true">
-        message: mbzirc_task2_network/Remote_LargeData
+        message: $(arg msg_file)
         receive_port: $(arg IMAGE_PORT)
         receive_ip: "$(arg LOCAL_IP)"
         event_driven: true
@@ -35,10 +39,17 @@
     <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed /multisense/left/image_rect_color/compressed" />
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_descriptions /multisense/left/image_rect_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/left/image_rect_color/compressed/parameter_updates /multisense/left/image_rect_color/compressed/parameter_updates" />
+
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed /multisense/depth/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed/parameter_descriptions /multisense/depth/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multisense/depth/compressed/parameter_updates /multisense/depth/compressed/parameter_updates" />
     <!-- decompress images -->
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/multisense/left/image_rect_color raw out:=/multisense/left/image_rect_color"/>
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/multisense/depth raw out:=/multisense/depth"/>
   </group>
 
   <group ns="handeye">
@@ -50,6 +61,74 @@
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/handeye/image_raw raw out:=/handeye/image_raw"/>
+  </group>
+
+  <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed /image_clipper_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_descriptions /image_clipper_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_updates /image_clipper_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/image_clipper_panel/output raw out:=/image_clipper_panel/output"/>
+  </group>
+
+  <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed /luminance_homogenizer_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed/parameter_descriptions /luminance_homogenizer_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed/parameter_updates /luminance_homogenizer_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/luminance_homogenizer_panel/output raw out:=/luminance_homogenizer_panel/output"/>
+  </group>
+
+  <group ns="meanshift_filtering_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed /meanshift_filtering_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed/parameter_descriptions /meanshift_filtering_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed/parameter_updates /meanshift_filtering_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/meanshift_filtering_panel/output raw out:=/meanshift_filtering_panel/output"/>
+  </group>
+
+  <group ns="wrench_detector">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed /wrench_detector/image/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed/parameter_descriptions /wrench_detector/image/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed/parameter_updates /wrench_detector/image/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
+  </group>
+
+  <group ns="multisense">
+    <node pkg="nodelet" type="nodelet" name="stereo_manager"
+          args="manager" />
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyz"
+          args="load depth_image_proc/point_cloud_xyz stereo_manager">
+      <remap from="camera_info" to="depth/camera_info" />
+      <remap from="image_rect" to="depth" />
+      <remap from="points" to="organized_image_points2" />
+      <rosparam>
+        queue_size: 100
+      </rosparam>
+    </node>
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"
+          args="load depth_image_proc/point_cloud_xyzrgb stereo_manager">
+      <remap from="rgb/camera_info" to="/$(arg namespace)/left/camera_info" />
+      <remap from="rgb/image_rect_color" to="left/image_rect_color" />
+      <remap from="depth_registered/image_rect" to="depth" />
+      <remap from="depth_registered/points" to="organized_image_points2_color" />
+      <rosparam>
+        queue_size: 100
+      </rosparam>
+    </node>
   </group>
 
 </launch>
