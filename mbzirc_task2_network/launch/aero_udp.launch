@@ -37,9 +37,13 @@
 
   <!-- compress images -->
   <group ns="zed">
-    <node name="republish" type="republish" pkg="image_transport"
+    <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
           args="raw in:=/zed/left/image_rect_color compressed out:=/zed/left/image_rect_color" respawn="true"/>
+    <node name="republish_depth" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/zed/depth/depth_registered compressedDepth out:=/zed/depth/depth_registered" respawn="true">
+    </node>
   </group>
   <group ns="handeye">
     <node name="republish" type="republish" pkg="image_transport"

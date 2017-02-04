@@ -41,12 +41,17 @@
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
 
-    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered /zed/depth/depth_registered" />
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/comperssedDepth /zed/depth/depth_registered/comperssedDepth" />
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/comperssedDepth/parameter_descriptions /zed/depth/depth_registered/comperssedDepth/parameter_descriptions" />
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/comperssedDepth/parameter_updates /zed/depth/depth_registered/comperssedDepth/parameter_updates" />
     <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" />
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
+    <node name="republish_depth" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered"/>
   </group>
 
   <group ns="handeye">
