@@ -52,8 +52,8 @@ geometry_msgs/PoseArray wrench_3d_projector__pose_top
 trajectory_msgs/JointTrajectory aero_controller__state
 trajectory_msgs/JointTrajectory aero_controller__stroke_state
 geometry_msgs/Wrench aero_ft
-sensor_msgs/JointState aero_joint_state
-sensor_msgs/JointState joint_state
+sensor_msgs/JointState aero_joint_states
+sensor_msgs/JointState joint_states
 tf2_msgs/TFMessage tf
 tf2_msgs/TFMessage tf_static
 nav_msgs/Odometry zed__odom
