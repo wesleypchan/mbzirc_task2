@@ -21,6 +21,7 @@ add_message_files(
    HRP22Remote_LargeData.msg
    HRP22Remote_SmallData.msg
    AERO2Remote_LargeData.msg
+   AERO2Remote_SmallData.msg
    Remote2AERO.msg
 )
 
