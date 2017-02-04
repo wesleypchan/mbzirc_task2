@@ -1,6 +1,6 @@
 <!-- -*- mode: xml -*- -->
 <launch>
-  <arg name="REMOTE_IP" default="192.168.97.133"/>
+  <arg name="REMOTE_IP" default="192.168.97.88"/>
   <arg name="LOCAL_IP" default="192.168.96.188"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>

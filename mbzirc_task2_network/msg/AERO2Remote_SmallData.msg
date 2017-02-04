@@ -1,0 +1,33 @@
+# zed image
+sensor_msgs/CompressedImage zed__left__image_rect_color__compressed
+dynamic_reconfigure/ConfigDescription zed__left__image_rect_color__compressed__parameter_descriptions
+dynamic_reconfigure/Config zed__left__image_rect_color__compressed__parameter_updates
+sensor_msgs/CameraInfo zed__left__camera_info
+
+sensor_msgs/Image zed__depth__depth_registered
+sensor_msgs/CameraInfo zed__depth__camera_info
+
+# handeye color image
+# sensor_msgs/CompressedImage handeye__image_color__compressed
+# dynamic_reconfigure/ConfigDescription handeye__image_color__compressed__parameter_descriptions
+# dynamic_reconfigure/Config handeye__image_color__compressed__parameter_updates
+
+# wrench_detector image
+sensor_msgs/CompressedImage wrench_detector__image__compressed
+dynamic_reconfigure/ConfigDescription wrench_detector__image__compressed__parameter_descriptions
+dynamic_reconfigure/Config wrench_detector__image__compressed__parameter_updates
+
+#bounding boxes
+jsk_recognition_msgs/BoundingBox extract_panel_cluster__output
+
+#polygon array
+jsk_recognition_msgs/PolygonArray multi_plane_estimate__output_refined_polygon
+
+#pose arrays
+geometry_msgs/PoseArray wrench_3d_projector__pose_bottom
+geometry_msgs/PoseArray wrench_3d_projector__pose_top
+
+#AERO topics
+tf2_msgs/TFMessage tf
+tf2_msgs/TFMessage tf_static
+nav_msgs/Odometry zed__odom

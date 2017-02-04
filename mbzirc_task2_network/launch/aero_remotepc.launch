@@ -104,25 +104,28 @@
           args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
   </group>
 
-  <group ns="relay_others">
+  <group ns="relay_others" if="$(arg USE_LARGEDATA)">
     <!-- rename topics -->
     <node name="relay_non_ground_box" type="relay" pkg="topic_tools" output="screen" args="/from_fc/non_ground_box_publisher/output non_ground_box_publisher__output" />
-    <node name="relay_extract_panel_cluster" type="relay" pkg="topic_tools" output="screen" args="/from_fc/extract_panel_cluster/output /extract_panel_cluster/output" />
     <node name="relay_candidate_point_indices_decomposer" type="relay" pkg="topic_tools" output="screen" args="/from_fc/candidate_point_indices_decomposer/boxes /candidate_point_indices_decomposer/boxes" />
     <node name="relay_panel_box_publisher" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_box_publisher/output /panel_box_publisher/output" />
-    <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
     <node name="relay_panel_roi_generator" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_roi_generator/debug_output /panel_roi_generator/debug_output" />
-    <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
-    <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
     <node name="relay_aero_controller_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/state /aero_controller/state" />
     <node name="relay_aero_controller_stroke_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/storke_state /aero_controller/stroke_state" />
     <node name="relay_aero_ft" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_ft /aero_ft" />
     <node name="relay_aero_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_state /aero_joint_state" />
     <node name="relay_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_state /joint_state" />
+  </group>
+
+  <group ns="relay_others">
+    <!-- rename topics -->
+    <node name="relay_extract_panel_cluster" type="relay" pkg="topic_tools" output="screen" args="/from_fc/extract_panel_cluster/output /extract_panel_cluster/output" />
+    <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
+    <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
+    <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
     <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf /tf" />
     <node name="relay_tf_static" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_static /tf_static" />
     <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
-
   </group>
 
   <group ns="zed">
