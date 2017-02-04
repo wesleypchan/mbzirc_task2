@@ -7,6 +7,7 @@ find_package(catkin REQUIRED
   sensor_msgs
   message_generation
   image_transport
+  compressed_depth_image_transport
   image_geometry
   compressed_image_transport
   tf2_msgs
