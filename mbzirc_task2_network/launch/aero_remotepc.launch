@@ -1,13 +1,13 @@
 <!-- -*- mode: xml -*- -->
 <launch>
-  <arg name="REMOTE_IP" default="192.168.96.190"/>
+  <arg name="REMOTE_IP" default="192.168.96.188"/> <!-- Pasiphae -->
   <arg name="LOCAL_IP" default="192.168.97.88"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
   <arg name="USE_LARGEDATA" default="true"/>
 
-  <arg name="msg_file" value="mbzirc_task2_network/Remote_LargeDataHRP2" if="$(arg USE_LARGEDATA)"/>
-  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallData$HRP2" unless="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
   <group ns="silverhammer">
     <!-- OCS to FC -->
@@ -40,13 +40,13 @@
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
+
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered /zed/depth/depth_registered" />
+    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" />
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
-    <node name="republish_depth" type="republish" pkg="image_transport"
-          output="screen"
-          args="compressed in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered"/>
   </group>
 
   <group ns="handeye">
@@ -104,12 +104,33 @@
           args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
   </group>
 
+  <group ns="relay_others">
+    <!-- rename topics -->
+    <node name="relay_non_ground_box" type="relay" pkg="topic_tools" output="screen" args="/from_fc/non_ground_box_publisher/output non_ground_box_publisher__output" />
+    <node name="relay_extract_panel_cluster" type="relay" pkg="topic_tools" output="screen" args="/from_fc/extract_panel_cluster/output /extract_panel_cluster/output" />
+    <node name="relay_candidate_point_indices_decomposer" type="relay" pkg="topic_tools" output="screen" args="/from_fc/candidate_point_indices_decomposer/boxes /candidate_point_indices_decomposer/boxes" />
+    <node name="relay_panel_box_publisher" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_box_publisher/output /panel_box_publisher/output" />
+    <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
+    <node name="relay_panel_roi_generator" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_roi_generator/debug_output /panel_roi_generator/debug_output" />
+    <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
+    <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
+    <node name="relay_aero_controller_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/state /aero_controller/state" />
+    <node name="relay_aero_controller_stroke_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/storke_state /aero_controller/stroke_state" />
+    <node name="relay_aero_ft" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_ft /aero_ft" />
+    <node name="relay_aero_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_state /aero_joint_state" />
+    <node name="relay_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_state /joint_state" />
+    <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf /tf" />
+    <node name="relay_tf_static" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_static /tf_static" />
+    <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
+
+  </group>
+
   <group ns="zed">
     <node pkg="nodelet" type="nodelet" name="stereo_manager"
           args="manager" />
     <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"
           args="load depth_image_proc/point_cloud_xyzrgb stereo_manager">
-      <remap from="rgb/camera_info" to="/$(arg namespace)/left/camera_info" />
+      <remap from="rgb/camera_info" to="/zed/left/camera_info" />
       <remap from="rgb/image_rect_color" to="left/image_rect_color" />
       <remap from="depth_registered/image_rect" to="depth/depth_registered" />
       <remap from="depth_registered/points" to="point_cloud/cloud_registered" />
