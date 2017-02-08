@@ -9,6 +9,10 @@
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
+  <param name="aero_description" command="cat $(find aero_description)/models/aero.urdf"/>
+  <param name="/zed/zed_description" command="cat $(find zed_wrapper)/urdf/zed.urdf"/>
+
+
   <group ns="silverhammer">
     <!-- OCS to FC -->
     <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py" -->
@@ -118,7 +122,7 @@
     <node name="relay_aero_controller_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/state /aero_controller/state" />
     <node name="relay_aero_controller_stroke_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/storke_state /aero_controller/stroke_state" />
     <node name="relay_aero_ft" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_ft /aero_ft" />
-    <node name="relay_aero_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_state /aero_joint_state" />
+    <node name="relay_aero_joint_states" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_states /aero_joint_states" />
     <node name="relay_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_state /joint_state" />
   </group>
 
@@ -146,6 +150,7 @@
         queue_size: 100
       </rosparam>
     </node>
+    <include file="$(find zed_wrapper)/launch/zed_tf.launch" />
   </group>
 
 </launch>
