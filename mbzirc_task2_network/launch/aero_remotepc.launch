@@ -123,7 +123,7 @@
     <node name="relay_aero_controller_stroke_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/storke_state /aero_controller/stroke_state" />
     <node name="relay_aero_ft" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_ft /aero_ft" />
     <node name="relay_aero_joint_states" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_states /aero_joint_states" />
-    <node name="relay_joint_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_state /joint_state" />
+    <node name="relay_joint_states" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_states /joint_states" />
   </group>
 
   <group ns="relay_others">
