@@ -19,3 +19,8 @@ include_directories(
 
 catkin_add_env_hooks(99.mbzirc_task2_utils SHELLS bash zsh DIRECTORY
   ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
+
+install(PROGRAMS
+  nodes/zed-odom-util.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
