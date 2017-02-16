@@ -137,7 +137,7 @@
     <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
   </group>
 
-  <group ns="zed">
+  <group ns="zed" if="$(arg USE_LARGEDATA)>
     <node pkg="nodelet" type="nodelet" name="stereo_manager"
           args="manager" />
     <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"
