@@ -42,7 +42,7 @@
           args="raw in:=/zed/left/image_rect_color compressed out:=/zed/left/image_rect_color" respawn="true"/>
     <node name="republish_depth" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/zed/depth/depth_registered compressedDepth out:=/zed/depth/depth_registered" respawn="true">
+          args="raw in:=/zed/depth/depth_registered compressedDepth out:=/zed/depth/depth_registered" respawn="true" if="$(arg USE_LARGEDATA)">
     </node>
   </group>
   <group ns="handeye">
@@ -69,7 +69,7 @@
   <group ns="wrench_detector">
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true"/>
+          args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
 

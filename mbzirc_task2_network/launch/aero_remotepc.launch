@@ -45,17 +45,17 @@
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
 
-    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth /zed/depth/depth_registered/compressedDepth" />
-    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" />
-    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" />
-    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" />
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth /zed/depth/depth_registered/compressedDepth" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" if="$(arg USE_LARGEDATA)/>
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
     <node name="republish_depth" type="republish" pkg="image_transport"
           output="screen"
-          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered"/>
+          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered" if="$(arg USE_LARGEDATA)/>
   </group>
 
   <group ns="handeye">
@@ -102,7 +102,7 @@
           args="compressed in:=/meanshift_filtering_panel/output raw out:=/meanshift_filtering_panel/output"/>
   </group>
 
-  <group ns="wrench_detector">
+  <group ns="wrench_detector" if="$(arg USE_LARGEDATA)>
     <!-- rename topics -->
     <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed /wrench_detector/image/compressed" />
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed/parameter_descriptions /wrench_detector/image/compressed/parameter_descriptions" />
