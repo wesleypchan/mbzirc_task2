@@ -1,0 +1,156 @@
+<!-- -*- mode: xml -*- -->
+<launch>
+  <arg name="REMOTE_IP" default="192.168.96.188"/> <!-- Pasiphae -->
+  <arg name="LOCAL_IP" default="192.168.97.88"/>
+  <arg name="IMAGE_PORT" default="1118"/>
+  <arg name="JOY_PORT" default="1119"/>
+  <arg name="USE_LARGEDATA" default="true"/>
+
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
+
+  <param name="aero_description" command="cat $(find aero_description)/models/aero.urdf"/>
+  <param name="/zed/zed_description" command="cat $(find zed_wrapper)/urdf/zed.urdf"/>
+
+
+  <group ns="silverhammer">
+    <!-- OCS to FC -->
+    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py" -->
+    <!--       output="screen" -->
+    <!--       name="joy_streamer"> -->
+    <!--   <rosparam subst_value="true"> -->
+    <!--     message: jsk_network_tools/Remote_Joy -->
+    <!--     to_port: $(arg JOY_PORT) -->
+    <!--     send_rate: 15 -->
+    <!--     to_ip: "$(arg REMOTE_IP)" -->
+    <!--   </rosparam> -->
+    <!-- </node> -->
+    <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
+          output="screen"
+          name="image_receiver">
+      <rosparam subst_value="true">
+        message: $(arg msg_file)
+        receive_port: $(arg IMAGE_PORT)
+        receive_ip: "$(arg LOCAL_IP)"
+        event_driven: true
+      </rosparam>
+    </node>
+
+  </group>
+
+  <group ns="zed">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed /zed/left/image_rect_color/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
+    <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
+
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth /zed/depth/depth_registered/compressedDepth" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" if="$(arg USE_LARGEDATA)/>
+    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" if="$(arg USE_LARGEDATA)/>
+    <!-- decompress images -->
+    <node name="republish_image" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
+    <node name="republish_depth" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered" if="$(arg USE_LARGEDATA)/>
+  </group>
+
+  <group ns="handeye">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed /handeye/image_raw/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed/parameter_descriptions /handeye/image_raw/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_raw/compressed/parameter_updates /handeye/image_raw/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/handeye/image_raw raw out:=/handeye/image_raw"/>
+  </group>
+
+  <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed /image_clipper_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_descriptions /image_clipper_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_updates /image_clipper_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/image_clipper_panel/output raw out:=/image_clipper_panel/output"/>
+  </group>
+
+  <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed /luminance_homogenizer_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed/parameter_descriptions /luminance_homogenizer_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/luminance_homogenizer_panel/output/compressed/parameter_updates /luminance_homogenizer_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/luminance_homogenizer_panel/output raw out:=/luminance_homogenizer_panel/output"/>
+  </group>
+
+  <group ns="meanshift_filtering_panel" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed /meanshift_filtering_panel/output/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed/parameter_descriptions /meanshift_filtering_panel/output/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/meanshift_filtering_panel/output/compressed/parameter_updates /meanshift_filtering_panel/output/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/meanshift_filtering_panel/output raw out:=/meanshift_filtering_panel/output"/>
+  </group>
+
+  <group ns="wrench_detector" if="$(arg USE_LARGEDATA)>
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed /wrench_detector/image/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed/parameter_descriptions /wrench_detector/image/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector/image/compressed/parameter_updates /wrench_detector/image/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
+  </group>
+
+  <group ns="relay_others" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_non_ground_box" type="relay" pkg="topic_tools" output="screen" args="/from_fc/non_ground_box_publisher/output non_ground_box_publisher__output" />
+    <node name="relay_candidate_point_indices_decomposer" type="relay" pkg="topic_tools" output="screen" args="/from_fc/candidate_point_indices_decomposer/boxes /candidate_point_indices_decomposer/boxes" />
+    <node name="relay_panel_box_publisher" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_box_publisher/output /panel_box_publisher/output" />
+    <node name="relay_panel_roi_generator" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_roi_generator/debug_output /panel_roi_generator/debug_output" />
+    <node name="relay_aero_controller_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/state /aero_controller/state" />
+    <node name="relay_aero_controller_stroke_state" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_controller/storke_state /aero_controller/stroke_state" />
+    <node name="relay_aero_ft" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_ft /aero_ft" />
+    <node name="relay_aero_joint_states" type="relay" pkg="topic_tools" output="screen" args="/from_fc/aero_joint_states /aero_joint_states" />
+    <node name="relay_joint_states" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joint_states /joint_states" />
+  </group>
+
+  <group ns="relay_others">
+    <!-- rename topics -->
+    <node name="relay_extract_panel_cluster" type="relay" pkg="topic_tools" output="screen" args="/from_fc/extract_panel_cluster/output /extract_panel_cluster/output" />
+    <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
+    <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
+    <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
+    <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf /tf" />
+    <node name="relay_tf_static" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_static /tf_static" />
+    <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
+  </group>
+
+  <group ns="zed" if="$(arg USE_LARGEDATA)>
+    <node pkg="nodelet" type="nodelet" name="stereo_manager"
+          args="manager" />
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"
+          args="load depth_image_proc/point_cloud_xyzrgb stereo_manager">
+      <remap from="rgb/camera_info" to="/zed/left/camera_info" />
+      <remap from="rgb/image_rect_color" to="left/image_rect_color" />
+      <remap from="depth_registered/image_rect" to="depth/depth_registered" />
+      <remap from="depth_registered/points" to="point_cloud/cloud_registered" />
+      <rosparam>
+        queue_size: 100
+      </rosparam>
+    </node>
+    <include file="$(find zed_wrapper)/launch/zed_tf.launch" />
+  </group>
+
+</launch>

@@ -7,16 +7,24 @@ find_package(catkin REQUIRED
   sensor_msgs
   message_generation
   image_transport
+  compressed_depth_image_transport
   image_geometry
   compressed_image_transport
   tf2_msgs
+  jsk_recognition_msgs
+  nav_msgs
+  trajectory_msgs
 )
 
 
 add_message_files(
    FILES
-   Remote_LargeData.msg
- )
+   HRP22Remote_LargeData.msg
+   HRP22Remote_SmallData.msg
+   AERO2Remote_LargeData.msg
+   AERO2Remote_SmallData.msg
+   Remote2AERO.msg
+)
 
 generate_messages(
    DEPENDENCIES
@@ -24,7 +32,10 @@ generate_messages(
    sensor_msgs
    dynamic_reconfigure
    tf2_msgs
- )
+   jsk_recognition_msgs
+   nav_msgs
+   trajectory_msgs
+)
 
 catkin_package(
   CATKIN_DEPENDS std_msgs sensor_msgs dynamic_reconfigure

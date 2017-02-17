@@ -1,0 +1,77 @@
+<!-- -*- mode: xml -*- -->
+<launch>
+  <arg name="REMOTE_IP" default="192.168.97.188"/>
+  <arg name="LOCAL_IP" default="192.168.96.190"/>
+  <arg name="IMAGE_PORT" default="1118"/>
+  <arg name="JOY_PORT" default="1119"/>
+  <arg name="USE_LARGEDATA" default="true"/>
+
+  <arg name="msg_file" value="mbzirc_task2_network/Remote_LargeDataHRP2" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/Remote_SmallDataHRP2" unless="$(arg USE_LARGEDATA)"/>
+
+  <group ns="silverhammer">
+    <!-- FC to OCS -->
+    <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py"
+          output="screen"
+          name="image_streamer" respawn="true">
+      <rosparam subst_value="true">
+        message: $(arg msg_file)
+        to_port: $(arg IMAGE_PORT)
+        send_rate: 25
+        to_ip: "$(arg REMOTE_IP)"
+      </rosparam>
+
+    </node>
+    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py" -->
+    <!--       output="screen" -->
+    <!--       name="joy_receiver"> -->
+    <!--   <rosparam subst_value="true"> -->
+    <!--     message: jsk_network_tools/Remote_Joy -->
+    <!--     receive_port: $(arg JOY_PORT) -->
+    <!--     receive_ip: "$(arg LOCAL_IP)" -->
+    <!--     event_driven: true -->
+    <!--   </rosparam> -->
+    <!-- </node> -->
+
+  </group>
+
+  <!-- compress images -->
+  <group ns="multisense">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/multisense/left/image_rect_color compressed out:=/multisense/left/image_rect_color" respawn="true"/>
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/multisense/depth compressed out:=/multisense/depth" respawn="true"/>
+  </group>
+  <group ns="handeye">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/handeye/image_color compressed out:=/handeye/image_color" respawn="true"/>
+  </group>
+  <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/image_clipper_panel/output compressed out:=/image_clipper_panel/output" respawn="true"/>
+  </group>
+  <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/luminance_homogenizer_panel/output compressed out:=/luminance_homogenizer_panel/output" respawn="true"/>
+  </group>
+  <group ns="meanshift_filtering_panel" if="$(arg USE_LARGEDATA)">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/meanshift_filtering_panel/output compressed out:=/meanshift_filtering_panel/output" respawn="true"/>
+  </group>
+
+  <group ns="wrench_detector">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true"/>
+  </group>
+
+
+
+
+</launch>
