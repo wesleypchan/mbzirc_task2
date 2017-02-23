@@ -7,7 +7,7 @@ import rospy
 def handle_add_two_ints(req):
     try:
         zed_init = rospy.ServiceProxy('initialize_zed_odom', std_srvs.srv.Trigger)
-        zed_res = zed_init();
+        zed_res = zed_init()
     except:
         return std_srvs.srv.TriggerResponse(False, "")
 
