@@ -26,9 +26,10 @@ def init_odom(req):
     initial_ground_tf.child_frame_id = 'initial_ground'
     initial_ground_tf.transform = current_transform.transform
     set_tf = True;
-    # br.sendTransform(initial_ground_tf)
+    br.sendTransform(initial_ground_tf)
     print("Odometry Initialized.")
     return std_srvs.srv.TriggerResponse(True, "")
+
 
 initial_ground_tf = geometry_msgs.msg.TransformStamped()
 rospy.init_node('initialize_odom_server')
@@ -42,11 +43,6 @@ set_tf = False
 def odom_init_server():
     print("start service.")
     rospy.spin()
-
-def broadcast_tf():
-    while not rospy.is_shutdown() and set_tf:
-        print("publish tf.")
-        br.sendTransform(initial_ground_tf)
 
 if __name__ == "__main__":
     odom_init_server()
