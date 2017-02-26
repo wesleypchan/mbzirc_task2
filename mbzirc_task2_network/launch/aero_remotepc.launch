@@ -57,6 +57,11 @@
           output="screen"
           args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered" if="$(arg USE_LARGEDATA)"/>
   </group>
+  <include file="$(find jsk_pcl_ros)/launch/multi_resolution_organized_pointcloud.launch">
+    <arg name="NAMESPACE" value="zed/point_cloud/cloud_registered" />
+    <arg name="INPUT" value="/zed/point_cloud/cloud_registered" />
+    <arg name="INPUT_DEPTH" value="/zed/depth/depth_registered" />
+  </include>
 
   <group ns="handeye">
     <!-- rename topics -->
