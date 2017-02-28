@@ -4,8 +4,6 @@ import std_srvs.srv
 import tf2_ros
 import rospy
 import geometry_msgs.msg
-from multiprocessing import Pool
-
 
 def init_odom(req):
     try:
@@ -46,4 +44,3 @@ def odom_init_server():
 
 if __name__ == "__main__":
     odom_init_server()
-    broadcast_tf()
