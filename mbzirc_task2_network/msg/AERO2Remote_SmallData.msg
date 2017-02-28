@@ -24,8 +24,8 @@ geometry_msgs/PoseArray wrench_3d_projector__pose_bottom
 geometry_msgs/PoseArray wrench_3d_projector__pose_top
 
 #AERO topics
-trajectory_msgs/JointTrajectory aero_controller__state
-trajectory_msgs/JointTrajectory aero_controller__stroke_state
+# trajectory_msgs/JointTrajectory aero_controller__state
+# trajectory_msgs/JointTrajectory aero_controller__stroke_state
 geometry_msgs/Wrench aero_ft
 sensor_msgs/JointState aero_joint_states
 sensor_msgs/JointState joint_states
