@@ -4,7 +4,7 @@
   <arg name="LOCAL_IP" default="192.168.97.88"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
-  <arg name="USE_LARGEDATA" default="true"/>
+  <arg name="USE_LARGEDATA" default="false"/>
   <arg name="USE_THROTTLE" default="true"/>
 
   <arg name="Throttle" value="_Throttle" if="$(arg USE_THROTTLE)"/>
@@ -61,7 +61,7 @@
           args="compressed in:=/zed/left/image_rect_color raw out:=/zed/left/image_rect_color"/>
     <node name="republish_depth" type="republish" pkg="image_transport"
           output="screen"
-          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered" if="$(arg USE_LARGEDATA)"/>
+          args="compressedDepth in:=/zed/depth/depth_registered raw out:=/zed/depth/depth_registered"/>
   </group>
   <include file="$(find jsk_pcl_ros)/launch/multi_resolution_organized_pointcloud.launch">
     <arg name="NAMESPACE" value="zed/point_cloud/cloud_registered" />
@@ -71,7 +71,7 @@
 
   <group ns="handeye">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color/compressed /handeye/image_color$(arg throttle)/compressed" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed /handeye/image_color/compressed" />
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_descriptions /handeye/image_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_updates /handeye/image_color/compressed/parameter_updates" />
     <!-- decompress images -->
@@ -148,7 +148,7 @@
     <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
   </group>
 
-  <group ns="zed" if="$(arg USE_LARGEDATA)">
+  <group ns="zed">
     <node pkg="nodelet" type="nodelet" name="stereo_manager"
           args="manager" />
     <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb"

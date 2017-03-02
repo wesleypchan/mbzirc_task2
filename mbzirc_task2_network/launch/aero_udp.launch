@@ -80,7 +80,7 @@
           args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
-  <node name="relay_joy" type="relay" pkg="topic_tools" output="screen" args="/from_ocs/joy /joy" />
+  <node name="relay_joy" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joy /joy" />
 
 
 </launch>
