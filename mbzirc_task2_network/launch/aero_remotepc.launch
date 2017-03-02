@@ -5,26 +5,32 @@
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
   <arg name="USE_LARGEDATA" default="true"/>
+  <arg name="USE_THROTTLE" default="true"/>
+
+  <arg name="Throttle" value="_Throttle" if="$(arg USE_THROTTLE)"/>
+  <arg name="Throttle" value="" unless="$(arg USE_THROTTLE)"/>
+  <arg name="throttle" value="_throttle" if="$(arg USE_THROTTLE)"/>
+  <arg name="throttle" value="" unless="$(arg USE_THROTTLE)"/>
 
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
-  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
   <param name="aero_description" command="cat $(find aero_description)/models/aero.urdf"/>
   <param name="/zed/zed_description" command="cat $(find zed_wrapper)/urdf/zed.urdf"/>
 
 
   <group ns="silverhammer">
-    <!-- OCS to FC -->
-    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py" -->
-    <!--       output="screen" -->
-    <!--       name="joy_streamer"> -->
-    <!--   <rosparam subst_value="true"> -->
-    <!--     message: jsk_network_tools/Remote_Joy -->
-    <!--     to_port: $(arg JOY_PORT) -->
-    <!--     send_rate: 15 -->
-    <!--     to_ip: "$(arg REMOTE_IP)" -->
-    <!--   </rosparam> -->
-    <!-- </node> -->
+    OCS to FC
+    <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py"
+          output="screen"
+          name="joy_streamer">
+      <rosparam subst_value="true">
+        message: jsk_network_tools/Remote_Joy
+        to_port: $(arg JOY_PORT)
+        send_rate: 15
+        to_ip: "$(arg REMOTE_IP)"
+      </rosparam>
+    </node>
     <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
           output="screen"
           name="image_receiver">
@@ -40,14 +46,14 @@
 
   <group ns="zed">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed /zed/left/image_rect_color/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color$(arg throttle)/compressed /zed/left/image_rect_color/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color$(arg throttle)/compressed/parameter_descriptions /zed/left/image_rect_color/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color$(arg throttle)/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
 
-    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth /zed/depth/depth_registered/compressedDepth" if="$(arg USE_LARGEDATA)"/>
-    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" if="$(arg USE_LARGEDATA)"/>
-    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" if="$(arg USE_LARGEDATA)"/>
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth /zed/depth/depth_registered/compressedDepth" if="$(arg USE_LARGEDATA)"/>
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" if="$(arg USE_LARGEDATA)"/>
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" if="$(arg USE_LARGEDATA)"/>
     <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" if="$(arg USE_LARGEDATA)"/>
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
@@ -65,9 +71,9 @@
 
   <group ns="handeye">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color/compressed /handeye/image_color/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color/compressed/parameter_descriptions /handeye/image_color/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color/compressed/parameter_updates /handeye/image_color/compressed/parameter_updates" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color/compressed /handeye/image_color$(arg throttle)/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_descriptions /handeye/image_color/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_updates /handeye/image_color/compressed/parameter_updates" />
     <!-- decompress images -->
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"

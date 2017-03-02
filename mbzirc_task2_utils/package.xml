@@ -18,6 +18,7 @@
   <run_depend>roscpp</run_depend>
 
 
-  <export>
-  </export>
+  <!-- <export> -->
+  <!--   <nodelet plugin="${prefix}/image_throttle_nodelets.xml"/> -->
+  <!-- </export> -->
 </package>

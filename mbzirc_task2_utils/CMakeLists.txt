@@ -17,6 +17,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+#add_library(image_throttle src/image_throttle.cpp)
+#target_link_libraries(image_throttle ${catkin_LIBRARIES})
+
 catkin_add_env_hooks(99.mbzirc_task2_utils SHELLS bash zsh DIRECTORY
   ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
 
@@ -24,3 +27,4 @@ install(PROGRAMS
   nodes/zed-odom-util.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
