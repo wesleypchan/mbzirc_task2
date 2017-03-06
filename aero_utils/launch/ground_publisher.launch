@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="aero_utils" name="groundPublisher" type="groundPublisher.py" output="screen" />
+</launch>

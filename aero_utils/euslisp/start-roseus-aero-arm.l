@@ -1,0 +1,6 @@
+(load "package://aeroeus/aero-arm-interface.l")
+(load "package://aero_utils/euslisp/aero-arm-utils.l")
+(aero-init)
+(load-controllers)
+(objects (list *aero*))
+(resetpose)
