@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   jsk_tools
   mbzirc_task2_network
   roscpp
+  nodelet_topic_tools
 )
 catkin_package(
   #INCLUDE_DIRS include
@@ -17,8 +18,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-#add_library(image_throttle src/image_throttle.cpp)
-#target_link_libraries(image_throttle ${catkin_LIBRARIES})
+add_library(image_throttle src/image_throttle.cpp)
+target_link_libraries(image_throttle ${catkin_LIBRARIES})
 
 catkin_add_env_hooks(99.mbzirc_task2_utils SHELLS bash zsh DIRECTORY
   ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
