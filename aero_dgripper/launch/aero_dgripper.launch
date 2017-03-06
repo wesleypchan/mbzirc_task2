@@ -1,0 +1,3 @@
+<launch>
+  <node name="aero_servo_controller_service" pkg="aero_dgripper" type="AeroServoController.py" respawn="true" />
+</launch>

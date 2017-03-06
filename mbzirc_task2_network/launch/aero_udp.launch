@@ -4,10 +4,18 @@
   <arg name="LOCAL_IP" default="192.168.96.188"/>
   <arg name="IMAGE_PORT" default="1118"/>
   <arg name="JOY_PORT" default="1119"/>
-  <arg name="USE_LARGEDATA" default="true"/>
+  <arg name="USE_LARGEDATA" default="false"/>
+  <arg name="USE_THROTTLE" default="true"/>
+
+  <arg name="Throttle" value="_Throttle" if="$(arg USE_THROTTLE)"/>
+  <arg name="Throttle" value="" unless="$(arg USE_THROTTLE)"/>
+  <arg name="throttle" value="_throttle" if="$(arg USE_THROTTLE)"/>
+  <arg name="throttle" value="" unless="$(arg USE_THROTTLE)"/>
 
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
-  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_SmallData" unless="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
+
+  <include file="$(find mbzirc_task2_network)/launch/aero_throttle.launch" />
 
   <group ns="silverhammer">
     <!-- FC to OCS -->
@@ -22,16 +30,16 @@
       </rosparam>
 
     </node>
-    <!-- <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py" -->
-    <!--       output="screen" -->
-    <!--       name="joy_receiver"> -->
-    <!--   <rosparam subst_value="true"> -->
-    <!--     message: jsk_network_tools/Remote_Joy -->
-    <!--     receive_port: $(arg JOY_PORT) -->
-    <!--     receive_ip: "$(arg LOCAL_IP)" -->
-    <!--     event_driven: true -->
-    <!--   </rosparam> -->
-    <!-- </node> -->
+    <node pkg="jsk_network_tools" type="silverhammer_highspeed_receiver.py"
+          output="screen"
+          name="joy_receiver">
+      <rosparam subst_value="true">
+        message: mbzirc_task2_network/Remote_Joy
+        receive_port: $(arg JOY_PORT)
+        receive_ip: "$(arg LOCAL_IP)"
+        event_driven: true
+      </rosparam>
+    </node>
 
   </group>
 
@@ -39,16 +47,16 @@
   <group ns="zed">
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/zed/left/image_rect_color compressed out:=/zed/left/image_rect_color" respawn="true"/>
+          args="raw in:=/zed/left/image_rect_color$(arg throttle) compressed out:=/zed/left/image_rect_color$(arg throttle)" respawn="true"/>
     <node name="republish_depth" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/zed/depth/depth_registered compressedDepth out:=/zed/depth/depth_registered" respawn="true" if="$(arg USE_LARGEDATA)">
+          args="raw in:=/zed/depth/depth_registered$(arg throttle) compressedDepth out:=/zed/depth/depth_registered$(arg throttle)" respawn="true">
     </node>
   </group>
   <group ns="handeye">
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
-          args="raw in:=/handeye/image_color compressed out:=/handeye/image_color" respawn="true"/>
+          args="raw in:=/handeye/image_color$(arg throttle) compressed out:=/handeye/image_color$(arg throttle)" respawn="true"/>
   </group>
   <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)">
     <node name="republish" type="republish" pkg="image_transport"
@@ -72,7 +80,7 @@
           args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
-
+  <node name="relay_joy" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joy /joy" />
 
 
 </launch>

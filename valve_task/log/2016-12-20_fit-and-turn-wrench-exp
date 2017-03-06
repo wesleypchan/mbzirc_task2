@@ -1,0 +1,14 @@
+17:02 shaft rotation angle 0 deg, wrench delta 0 mm, 1 try, succeeded
+17:04 shaft rotation angle 0 deg, wrench delta -65 mm 2 tries, failed due to oscillating force servoing.
+17:09 shaft rotation angle 0 deg, wrench delta -65 mm
+
+17:32 shaft rotation angle 0 deg, wrench delta 0 mm, bug, failed
+
+17:51 shaft rotation angle 0 deg, wrench delta 0 mm, 1 try, succeeded
+17:57 shaft rotation angle 0 deg, wrench delta -65 mm, 2 tries, succeeded
+18:00 shaft rotation angle 0 deg, wrench delta 65 mm, 1 try, succeeded
+18:02 shaft rotation angle 45 deg, wrench delta 0 mm, 1 try, succeeded
+18:04 shaft rotation angle 45 deg, wrench delta -65 mm, 2 tries, fit succeeded, turn failed due to joint angle violation and limit force exceeded
+18:08 shaft rotation angle 45 deg, wrench delta 65 mm, 2 tries, fit succeeded, turn failed due to joint angle violation and limit force exceeded
+18:14 shaft rotation angle 45 deg, wrench delta 65 mm, 2 tries, fit succeeded, turn failed due to limit force exceeded, no joint angle violations
+18:20 shaft rotation angle 45 deg, wrench delta 65 mm, 2 tries, fit succeeded, turn failed due to incorrectly detected high normal force around 115 deg of the turn
