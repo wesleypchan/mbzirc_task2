@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="aero_utils" name="AeroServoController" type="AeroServoController.py" output="screen" />
+  <node pkg="aero_utils" name="groundPublisher" type="groundPublisher.py" output="screen" />
+  <node pkg="aero_dgripper" name="FTPublisher" type="FTPublisher.py" output="screen" />
+  <node pkg="tf" name="rarm_end_coords_tf_publisher" type="static_transform_publisher" args="0.0 0.0 0.0 0 -1.570796 1.570796 r_dgripper_link rarm_end_coords 10" respawn="true" />
+  <node pkg="tf" name="rarm_ft_sensor_frame_tf_publisher" type="static_transform_publisher" args="0.0 0.0 0.05 1.570796 3.1415926 0 r_wrist_p_link rarm_ft_sensor_frame 10" respawn="true" />
+</launch>

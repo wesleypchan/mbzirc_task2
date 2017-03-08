@@ -7,7 +7,7 @@
           args="load image_proc/debayer zed_nodelet_manager" output="screen"  respawn="true">
     </node>
     <node pkg="nodelet" type="nodelet" name="image_throttle"
-          args="load mbzirc_task2_perception/image_throttle zed_nodelet_manager" output="log"  respawn="true">
+          args="load mbzirc_task2_utils/image_throttle zed_nodelet_manager" output="log"  respawn="true">
       <remap from="/zed/left/topic_in"  to="/zed/left/image_rect_color"/>
       <remap from="/zed/left/topic_out" to="/zed/left/image_rect_color_throttle"/>
       <param name="update_rate" value="$(arg rate)" />
@@ -20,7 +20,7 @@
           args="load image_proc/debayer depth_nodelet_manager" output="screen"  respawn="true">
     </node>
     <node pkg="nodelet" type="nodelet" name="depth_throttle"
-          args="load mbzirc_task2_perception/image_throttle depth_nodelet_manager" output="log"  respawn="true">
+          args="load mbzirc_task2_utils/image_throttle depth_nodelet_manager" output="log"  respawn="true">
       <remap from="/zed/depth/topic_in"  to="/zed/depth/depth_registered"/>
       <remap from="/zed/depth/topic_out" to="/zed/depth/depth_registered_throttle"/>
       <param name="update_rate" value="$(arg rate)" />
@@ -33,7 +33,7 @@
           args="load image_proc/debayer handeye_nodelet_manager" output="screen"  respawn="true">
     </node>
     <node pkg="nodelet" type="nodelet" name="handeye_throttle"
-          args="load mbzirc_task2_perception/image_throttle handeye_nodelet_manager" output="log"  respawn="true">
+          args="load mbzirc_task2_utils/image_throttle handeye_nodelet_manager" output="log"  respawn="true">
       <remap from="/handeye/topic_in"  to="/handeye/image_color"/>
       <remap from="/handeye/topic_out" to="/handeye/image_color_throttle"/>
       <param name="update_rate" value="$(arg rate)" />

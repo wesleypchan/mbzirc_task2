@@ -1,0 +1,22 @@
+<launch>
+  <arg name="aerov_machine_name" default="pasiphae"/>
+
+  <machine name="$(arg aerov_machine_name)" address="$(arg aerov_machine_name)" env-loader="/opt/ros/indigo/env.sh" user="leus" />
+  
+  <!-- <include machine="$(arg aerov_machine_name)" file="$(find swiftnav_piksi)/launch/swiftnav_piksi.launch" output="screen"/> -->
+  
+   <node machine="$(arg aerov_machine_name)" pkg="swiftnav_piksi" type="piksi_node" name="piksi_node" output="screen">                     
+     <param name="port" value="/dev/piksi" />                                                                                            
+   </node>                                                                                                                               
+                                                                                                                                         
+   <node machine="$(arg aerov_machine_name)" pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+      <rosparam command="delete" param="/diagnostic_aggregator" />                                                                       
+      <rosparam command="load" file="$(find swiftnav_piksi)/config/swiftnav_piksi_diag.yaml" />                                          
+   </node> 
+
+
+  <!-- <rosparam file="$(find hrp2v_dynamixel_controller)/yaml/joints_trajectory_controller.yaml" command="load"/> -->
+  <!-- <machine name="$(arg hrp_machine_name)" address="$(arg hrp_machine_name)" env-loader="/opt/ros/hydro/env.sh" user="hrpuser" /> -->
+  
+  <!-- <node machine="$(arg hrp_machine_name)" name="controller_spawner_meta" pkg="dynamixel_controllers" type="controller_spawner.py" -->
+</launch>
