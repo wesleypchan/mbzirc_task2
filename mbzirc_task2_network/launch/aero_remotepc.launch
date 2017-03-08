@@ -20,12 +20,12 @@
 
 
   <group ns="silverhammer">
-    OCS to FC
+    <!-- OCS to FC -->
     <node pkg="jsk_network_tools" type="silverhammer_highspeed_streamer.py"
           output="screen"
           name="joy_streamer">
       <rosparam subst_value="true">
-        message: jsk_network_tools/Remote_Joy
+        message: mbzirc_task2_network/Remote_Joy
         to_port: $(arg JOY_PORT)
         send_rate: 15
         to_ip: "$(arg REMOTE_IP)"
@@ -51,10 +51,10 @@
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/image_rect_color$(arg throttle)/compressed/parameter_updates /zed/left/image_rect_color/compressed/parameter_updates" />
     <node name="relay_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/left/camera_info /zed/left/camera_info" />
 
-    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth /zed/depth/depth_registered/compressedDepth" if="$(arg USE_LARGEDATA)"/>
-    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions" if="$(arg USE_LARGEDATA)"/>
-    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates" if="$(arg USE_LARGEDATA)"/>
-    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info" if="$(arg USE_LARGEDATA)"/>
+    <node name="relay_depth_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth /zed/depth/depth_registered/compressedDepth"/>
+    <node name="relay_depth_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_descriptions /zed/depth/depth_registered/compressedDepth/parameter_descriptions"/>
+    <node name="relay_depth_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/depth_registered$(arg throttle)/compressedDepth/parameter_updates /zed/depth/depth_registered/compressedDepth/parameter_updates"/>
+    <node name="relay_depth_info" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/depth/camera_info /zed/depth/camera_info"/>
     <!-- decompress images -->
     <node name="republish_image" type="republish" pkg="image_transport"
           output="screen"
@@ -143,7 +143,7 @@
     <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
     <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
     <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
-    <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf /tf" />
+    <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_throttle /tf" />
     <node name="relay_tf_static" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_static /tf_static" />
     <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
   </group>
@@ -161,7 +161,9 @@
         queue_size: 100
       </rosparam>
     </node>
-    <include file="$(find zed_wrapper)/launch/zed_tf.launch" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="zed_tf_publisher"
+          args="-0.26 -0.205 0.25 0 0 0.03 /r_shoulder_link /zed_current_frame" respawn="true"/>
+    <!-- <include file="$(find zed_wrapper)/launch/zed_tf.launch" /> -->
   </group>
 
 </launch>

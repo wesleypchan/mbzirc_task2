@@ -15,7 +15,7 @@
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
-  <include file="$(find mbzirc_task2_network)/launch/aero_throttle.launch" />
+  <include file="$(find mbzirc_task2_network)/launch/aero_throttle.launch" if="$(arg USE_THROTTLE)"/>
 
   <group ns="silverhammer">
     <!-- FC to OCS -->
