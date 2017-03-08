@@ -15,7 +15,7 @@
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
-  <include file="$(find mbzirc_task2_network)/launch/aero_throttle.launch" />
+  <include file="$(find mbzirc_task2_network)/launch/aero_throttle.launch" if="$(arg USE_THROTTLE)"/>
 
   <group ns="silverhammer">
     <!-- FC to OCS -->
@@ -25,7 +25,7 @@
       <rosparam subst_value="true">
         message: "$(arg msg_file)"
         to_port: $(arg IMAGE_PORT)
-        send_rate: 25
+        send_rate: 5
         to_ip: "$(arg REMOTE_IP)"
       </rosparam>
 
@@ -80,6 +80,10 @@
           args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
+  <!-- throttle TF -->
+  <node name="tf_throttle" type="throttle" pkg="topic_tools" args="messages /tf 5.0 /tf_throttle" />
+
+  <!-- rename joy node -->
   <node name="relay_joy" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joy /joy" />
 
 
