@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   jsk_tools
   mbzirc_task2_network
   roscpp
+  nodelet
   nodelet_topic_tools
 )
 catkin_package(
