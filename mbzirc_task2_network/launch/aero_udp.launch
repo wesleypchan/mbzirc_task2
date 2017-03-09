@@ -80,6 +80,10 @@
           args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
+  <!-- throttle TF -->
+  <node name="tf_throttle" type="throttle" pkg="topic_tools" args="messages /tf 5.0 /tf_throttle" />
+
+  <!-- rename joy node -->
   <node name="relay_joy" type="relay" pkg="topic_tools" output="screen" args="/from_fc/joy /joy" />
 
 
