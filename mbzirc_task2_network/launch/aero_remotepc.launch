@@ -12,7 +12,7 @@
   <arg name="throttle" value="_throttle" if="$(arg USE_THROTTLE)"/>
   <arg name="throttle" value="" unless="$(arg USE_THROTTLE)"/>
 
-  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_LargeData" if="$(arg USE_LARGEDATA)"/>
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
   <param name="aero_description" command="cat $(find aero_description)/models/aero.urdf"/>
