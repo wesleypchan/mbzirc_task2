@@ -12,7 +12,7 @@
   <arg name="throttle" value="_throttle" if="$(arg USE_THROTTLE)"/>
   <arg name="throttle" value="" unless="$(arg USE_THROTTLE)"/>
 
-  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote_LargeData" if="$(arg USE_LARGEDATA)"/>
+  <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_LargeData" if="$(arg USE_LARGEDATA)"/>
   <arg name="msg_file" value="mbzirc_task2_network/AERO2Remote$(arg Throttle)_SmallData" unless="$(arg USE_LARGEDATA)"/>
 
   <param name="aero_description" command="cat $(find aero_description)/models/aero.urdf"/>
@@ -80,16 +80,16 @@
           args="compressed in:=/handeye/image_color raw out:=/handeye/image_color"/>
   </group>
 
-  <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)">
+  <!-- <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)"> -->
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed /image_clipper_panel/output/compressed" />
-    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_descriptions /image_clipper_panel/output/compressed/parameter_descriptions" />
-    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_updates /image_clipper_panel/output/compressed/parameter_updates" />
+  <!--   <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed /image_clipper_panel/output/compressed" /> -->
+  <!--   <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_descriptions /image_clipper_panel/output/compressed/parameter_descriptions" /> -->
+  <!--   <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_updates /image_clipper_panel/output/compressed/parameter_updates" /> -->
     <!-- decompress images -->
-    <node name="republish" type="republish" pkg="image_transport"
-          output="screen"
-          args="compressed in:=/image_clipper_panel/output raw out:=/image_clipper_panel/output"/>
-  </group>
+  <!--   <node name="republish" type="republish" pkg="image_transport" -->
+  <!--         output="screen" -->
+  <!--         args="compressed in:=/image_clipper_panel/output raw out:=/image_clipper_panel/output"/> -->
+  <!-- </group> -->
 
   <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
     <!-- rename topics -->
@@ -161,9 +161,10 @@
         queue_size: 100
       </rosparam>
     </node>
+    <!-- publish zed tf -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="zed_tf_publisher"
           args="-0.26 -0.205 0.25 0 0 0.03 /r_shoulder_link /zed_current_frame" respawn="true"/>
-    <!-- <include file="$(find zed_wrapper)/launch/zed_tf.launch" /> -->
+    <include file="$(find zed_wrapper)/launch/zed_tf.launch" />
   </group>
 
 </launch>

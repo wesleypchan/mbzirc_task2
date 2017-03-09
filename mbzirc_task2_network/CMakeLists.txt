@@ -23,6 +23,7 @@ add_message_files(
    HRP22Remote_SmallData.msg
    AERO2Remote_LargeData.msg
    AERO2Remote_SmallData.msg
+   AERO2Remote_Throttle_LargeData.msg
    AERO2Remote_Throttle_SmallData.msg
    Remote2AERO.msg
    Remote_Joy.msg
