@@ -80,6 +80,12 @@
           args="raw in:=/wrench_detector/image compressed out:=/wrench_detector/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
   </group>
 
+  <group ns="wrench_detector_handeye">
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="raw in:=/wrench_detector_handeye/image compressed out:=/wrench_detector_handeye/image" respawn="true" if="$(arg USE_LARGEDATA)"/>
+  </group>
+
   <!-- throttle TF -->
   <node name="tf_throttle" type="throttle" pkg="topic_tools" args="messages /tf 5.0 /tf_throttle" />
 

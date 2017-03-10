@@ -124,6 +124,17 @@
           args="compressed in:=/wrench_detector/image raw out:=/wrench_detector/image"/>
   </group>
 
+  <group ns="wrench_detector_handeye" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector_handeye/image/compressed /wrench_detector_handeye/image/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector_handeye/image/compressed/parameter_descriptions /wrench_detector_handeye/image/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_detector_handeye/image/compressed/parameter_updates /wrench_detector_handeye/image/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/wrench_detector_handeye/image raw out:=/wrench_detector_handeye/image"/>
+  </group>
+
   <group ns="relay_others" if="$(arg USE_LARGEDATA)">
     <!-- rename topics -->
     <node name="relay_non_ground_box" type="relay" pkg="topic_tools" output="screen" args="/from_fc/non_ground_box_publisher/output non_ground_box_publisher__output" />
