@@ -2,7 +2,7 @@
 
 import os.path
 from seed_command import SeedCommand
-# from AeroServoController.srv import *
+from aero_utils.srv import *
 from aero_dgripper.srv import *
 import rospy
 
