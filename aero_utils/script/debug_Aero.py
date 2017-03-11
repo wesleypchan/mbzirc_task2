@@ -31,12 +31,12 @@ class Aero:
                 ty_scale = 33.0
                 tz_scale = 21.0
                 
-                fx = (self.POS[9] - 32768.0)  *fx_scale/32768.0
-                fy = (self.POS[10] - 32768.0)  *fy_scale/32768.0
-                fz = (self.POS[11] - 32768.0)  *fz_scale/32768.0
-                tx = (self.POS[12] - 32768.0)  *tx_scale/32768.0
-                ty = (self.POS[13] - 32768.0)  *ty_scale/32768.0
-                tz = (self.POS[14] - 32768.0)  *tz_scale/32768.0
+                fx = (self.POS[9] - 32768.0)  * fx_scale/32768.0
+                fy = (self.POS[10] - 32768.0)  * fy_scale/32768.0
+                fz = (self.POS[11] - 32768.0)  * fz_scale/32768.0
+                tx = (self.POS[12] - 32768.0)  * tx_scale/32768.0
+                ty = (self.POS[13] - 32768.0)  * ty_scale/32768.0
+                tz = (self.POS[14] - 32768.0)  * tz_scale/32768.0
 
 		stdscr.addstr(0, 0, "/////////  Position  Data  //////////")
 		stdscr.addstr(1, 0, "1:{0}   ".format(self.POS[0]))

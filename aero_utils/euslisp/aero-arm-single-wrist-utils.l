@@ -43,7 +43,8 @@
     (send *ri* :move-waist #f(150 0 -50) :world 7000))
 
 (defun Task2RecogPose (&optional (time 4000))
-        (send *aero* :task2-recog-pose)
+        ;;(send *aero* :task2-recog-pose)
+        (send *aero* :angle-vector #f(-82 0 67 0 0 90))
             (if (boundp '*irtviewer*)
                             (send *irtviewer* :draw-objects))
                 (moveRobot time)
