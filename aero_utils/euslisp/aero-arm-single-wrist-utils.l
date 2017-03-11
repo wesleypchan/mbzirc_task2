@@ -10,7 +10,8 @@
         (print "*real* is not set to t")
         (return-from moveRobot))
     (progn
-      (if (not (send *aero* :self-collision-check))
+        (if t
+      ;; (if (not (send *aero* :self-collision-check))
           (progn
             ;;(send *ri* :wait-interpolation-smooth)
             (send *ri* :angle-vector (send *aero* :angle-vector) (* time *base-time*))
@@ -44,7 +45,7 @@
 
 (defun Task2RecogPose (&optional (time 4000))
         ;;(send *aero* :task2-recog-pose)
-        (send *aero* :angle-vector #f(-82 0 67 0 0 90))
+        (send *aero* :angle-vector #f(-86 0 67 0 0 90 0 0 0 0 0 0))
             (if (boundp '*irtviewer*)
                             (send *irtviewer* :draw-objects))
                 (moveRobot time)
@@ -52,7 +53,7 @@
 
 (defun resetDrivingPose (&optional (time 4000))
     ;;(send *robot* :angle-vector #f(0.0 60.0 120.0 0.01 -90.0 1.20858))
-    (send *robot* :angle-vector #f(0.0 0.0 67.0 0.0 0.0 90.0))
+    (send *robot* :angle-vector #f(0.0 0.0 67.0 0.0 0.0 90.0 0 0 0 0 0 0))
     (if (boundp '*irtviewer*)
         (send *irtviewer* :draw-objects))
     (moveRobot time)
@@ -68,6 +69,7 @@
 (defun moveHand (delta &optional (time 4000) (debug-view nil))
     (setq target (send *aero* :rarm :end-coords :copy-worldcoords))
     (send target :translate delta)
+
     (send *aero* :rarm :inverse-kinematics target
           :debug-view debug-view)
     (if (boundp '*irtviewer*)
@@ -85,12 +87,12 @@
     (send *aero* :rarm :dgripper :joint-angle (+ pos gripper-offset))
     (moverobot time))
 
-(defun servo-enable ()
-    (send *ri* :servo-enable)
+(defun arm-servo-enable ()
+    (send *ri* :arm-servo-enable)
     (matchsimwithrobot)
     )
-(defun servo-disable ()
-    (send *ri* :servo-disable)
+(defun arm-servo-disable ()
+    (send *ri* :arm-servo-disable)
     )
 (defun gripper-servo-enable ()
     (send *ri* :gripper-servo-enable)

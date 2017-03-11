@@ -91,7 +91,31 @@
     (setq trigger_thre -0.2)
     (setq button_thre -0.2)
     (setq stick_thre 0.01)
-    
+
+
+    ;; E-stop function
+    (if (and (< L1 trigger_thre)
+             (< L2 trigger_thre)
+             (equal Select 1))
+            (progn
+                (arm-servo-disable)
+                (wheels-servo-disable)
+                (gripper-servo-disable)
+                (print "E-stop disable")
+                )
+        )
+    ;; recover from E-stop
+    (if (and (< R1 trigger_thre)
+             (< R2 trigger_thre)
+             (equal Start 1))
+            (progn
+                (arm-servo-enable)
+                (wheels-servo-enable)
+                (gripper-servo-enable)
+                (print "E-stop enable")
+                )
+        )
+
     
     (setq mode nil)
     (cond
@@ -196,7 +220,10 @@
               )
           (if (and (equal prev_Select 1) (equal Select 0))
                   (progn
-                      (send *robot* :angle-vector #f(0 0 0 0 0 0))
+                      (send *robot* :rarm-shoulder-p :joint-angle 0)
+                      (send *robot* :rarm-elbow-p :joint-angle 0)
+                      (send *robot* :rarm-wrist-p :joint-angle 0)
+                      (send *robot* :rarm-wrist-y :joint-angle 0)
                       (moverobot)
                       )
               )     

@@ -32,10 +32,10 @@
   (:torso-servo-disable ()
     (send self :send-servo 9 0)
     )
-  (:servo-enable ()
+  (:arm-servo-enable ()
     (send self :send-servo -1 1)
     )
-  (:servo-disable ()
+  (:arm-servo-disable ()
     (send self :send-servo -1 0)
     )
   );; end of defmethod aero-upper-interface
