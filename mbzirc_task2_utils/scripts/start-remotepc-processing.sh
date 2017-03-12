@@ -59,4 +59,4 @@ byobu-tmux send-keys -t joy "rosrun joy joy_node" C-m
 byobu-tmux send-keys -t sixad "sixad -s" C-m
 
 
-byobu-tmux attach-session -t image-proc
+byobu-tmux attach-session -t remote-pc
