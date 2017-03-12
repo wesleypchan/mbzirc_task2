@@ -71,7 +71,7 @@
 
   <group ns="handeye">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed /handeye/image_color/compressed" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/ha/ndeye/image_color$(arg throttle)/compressed /handeye/image_color/compressed" />
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_descriptions /handeye/image_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_updates /handeye/image_color/compressed/parameter_updates" />
     <!-- decompress images -->
@@ -133,6 +133,17 @@
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
           args="compressed in:=/wrench_detector_handeye/image raw out:=/wrench_detector_handeye/image"/>
+  </group>
+
+  <group ns="short_range_panel_detector" if="$(arg USE_LARGEDATA)">
+    <!-- rename topics -->
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/short_range_panel_detector/image/compressed /short_range_panel_detector/image/compressed" />
+    <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/short_range_panel_detector/image/compressed/parameter_descriptions /short_range_panel_detector/image/compressed/parameter_descriptions" />
+    <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/short_range_panel_detector/image/compressed/parameter_updates /short_range_panel_detector/image/compressed/parameter_updates" />
+    <!-- decompress images -->
+    <node name="republish" type="republish" pkg="image_transport"
+          output="screen"
+          args="compressed in:=/short_range_panel_detector/image raw out:=/short_range_panel_detector/image"/>
   </group>
 
   <group ns="relay_others" if="$(arg USE_LARGEDATA)">
