@@ -4,6 +4,7 @@
 (setq *real* t)
 ;(resettask2pose)
 ;(moverobot)
+(load "package://valve_task/euslisp/fit-wrench-to-shaft-aero.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-arm.l")
 

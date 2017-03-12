@@ -51,6 +51,13 @@
                 (moveRobot time)
                     (send *ri* :move-waist #f(-150 0 -250) :world 7000))
 
+(defun testFitWrenchPose (&optional (time 4000))
+        ;;(send *aero* :task2-recog-pose)
+        (send *aero* :angle-vector #f(0.012882 32.3977 88.5227 0.005602 -30.9825 0 0 0 0 0 0 0))
+            (if (boundp '*irtviewer*)
+                            (send *irtviewer* :draw-objects))
+                (moveRobot time))
+
 (defun resetDrivingPose (&optional (time 4000))
     ;;(send *robot* :angle-vector #f(0.0 60.0 120.0 0.01 -90.0 1.20858))
     (send *robot* :angle-vector #f(0.0 0.0 67.0 0.0 0.0 90.0 0 0 0 0 0 0))
