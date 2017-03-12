@@ -1,4 +1,3 @@
-<!-- -*- mode: xml -*- -->
 <launch>
   <arg name="REMOTE_IP" default="192.168.96.188"/> <!-- Pasiphae -->
   <arg name="LOCAL_IP" default="192.168.97.88"/>
@@ -71,7 +70,7 @@
 
   <group ns="handeye">
     <!-- rename topics -->
-    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/ha/ndeye/image_color$(arg throttle)/compressed /handeye/image_color/compressed" />
+    <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed /handeye/image_color/compressed" />
     <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_descriptions /handeye/image_color/compressed/parameter_descriptions" />
     <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/handeye/image_color$(arg throttle)/compressed/parameter_updates /handeye/image_color/compressed/parameter_updates" />
     <!-- decompress images -->
@@ -79,17 +78,6 @@
           output="screen"
           args="compressed in:=/handeye/image_color raw out:=/handeye/image_color"/>
   </group>
-
-  <!-- <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)"> -->
-    <!-- rename topics -->
-  <!--   <node name="relay_image" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed /image_clipper_panel/output/compressed" /> -->
-  <!--   <node name="relay_description" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_descriptions /image_clipper_panel/output/compressed/parameter_descriptions" /> -->
-  <!--   <node name="relay_updates" type="relay" pkg="topic_tools" output="screen" args="/from_fc/image_clipper_panel/output/compressed/parameter_updates /image_clipper_panel/output/compressed/parameter_updates" /> -->
-    <!-- decompress images -->
-  <!--   <node name="republish" type="republish" pkg="image_transport" -->
-  <!--         output="screen" -->
-  <!--         args="compressed in:=/image_clipper_panel/output raw out:=/image_clipper_panel/output"/> -->
-  <!-- </group> -->
 
   <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
     <!-- rename topics -->
@@ -162,6 +150,7 @@
   <group ns="relay_others">
     <!-- rename topics -->
     <node name="relay_extract_panel_cluster" type="relay" pkg="topic_tools" output="screen" args="/from_fc/extract_panel_cluster/output /extract_panel_cluster/output" />
+    <node name="relay_panel_2d_projector" type="relay" pkg="topic_tools" output="screen" args="/from_fc/panel_3d_projector/output /panel_3d_projector/output" />
     <node name="relay_multi_plane_estimate" type="relay" pkg="topic_tools" output="screen" args="/from_fc/multi_plane_estimate/output_refined_polygon /multi_plane_estimate/output_refined_polygon" />
     <node name="relay_wrench_3d_projector_bottom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_bottom /wrench_3d_projector/pose_bottom" />
     <node name="relay_wrench_3d_projector_top" type="relay" pkg="topic_tools" output="screen" args="/from_fc/wrench_3d_projector/pose_top /wrench_3d_projector/pose_top" />
