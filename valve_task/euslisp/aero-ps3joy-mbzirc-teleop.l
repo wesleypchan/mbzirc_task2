@@ -1,7 +1,7 @@
 #!/usr/bin/env roseus
 
 (load "package://aero_utils/euslisp/aero-arm-single-wrist-utils.l")
-;; (load "package://valve_task/euslisp/fit-wrench-to-shaft.l")
+(load "package://valve_task/euslisp/fit-wrench-to-shaft-aero.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-arm.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 
@@ -173,7 +173,7 @@
           (if (or (> (abs LStick_UD) stick_thre) (> (abs RStick_LR) stick_thre) (> (abs RStick_UD) stick_thre))
                   (progn
                       (setq moveArmGain 25)
-                      (move-arm (scale moveArmGain (float-vector RStick_UD (- LStick_LR) LStick_UD)))
+                      (move-arm (scale moveArmGain (float-vector RStick_UD LStick_LR LStick_UD)))
                       )
               )
           (if (< DPad_U button_thre)
