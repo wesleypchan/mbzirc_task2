@@ -10,6 +10,9 @@
 ;;             |
 ;; detect-shaft-center-state
 ;;             |
+;;;;;      slide-to-fit-state
+;;;;;             |
+;;             |
 ;;     turn-shaft-state
 
 
@@ -26,7 +29,7 @@
 
 ;; move in shaft direction until force is detected 
 (defun detect-shaft-contact ()
-  
+
   (setq contact-force-thres 1.0)
   (get-force-offset)
   (setq offset-force (get-offset-force-vector))
@@ -197,11 +200,11 @@
        ) ;; end STATE: scan for contact
 
 (defun detect-shaft-center-state ()
+    (format t "Entered detect-shaft-center-state.~%")
+    (format t "offset force: ~a~%" (get-offset-force-vector))
     (setq tangent-force-thres 1.5)
     (setq force-vector (get-offset-force-vector))
     (setq tangent-force (v. force-vector tangent-vector)) 
-    (format t "offset force: ~a~%" (get-offset-force-vector))
-    (format t "Entered detect-shaft-center-state.~%")
     (slide-to-fit-state)
     )
 
@@ -315,7 +318,9 @@
 ;; slide hand left and right while maintaining a downward force to try to ensure/get a better fitting of the wrench to the shaft
 (defun slide-to-fit-state ()
     (setq shaft-width 13)
+    (setq slide-to-fit-moverobot-time 500)
     (format t "Entered slide-to-fit-state~%")
+    (prompt "hit enter to continue")
     (setq start-pose (send *robot* arm :end-coords :copy-worldcoords))    
     (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
     
@@ -376,9 +381,9 @@
                           )
                       )
 
-                    
+                    (prompt "hit enter to move arm")
                     (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot 200)
+                    (moverobot slide-to-fit-moverobot-time)
                     (send *ri* :wait-interpolation)
                     
                     (unix:usleep force-sensor-wait-time)
@@ -417,8 +422,9 @@
                           )
                       )
 
+                    (prompt "hit enter to mov arm")
                     (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot 200)
+                    (moverobot slide-to-fit-moverobot-time)
                     (send *ri* :wait-interpolation)
 
                     (unix:usleep force-sensor-wait-time)
@@ -474,8 +480,10 @@
                               (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                               )
                           )
+
+                        (prompt "hit enter to move arm")
                         (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot 200)
+                        (moverobot slide-to-fit-moverobot-time)
                         (send *ri* :wait-interpolation)
                         
                         (unix:usleep force-sensor-wait-time)
@@ -519,8 +527,9 @@
                               )
                           )
                         
+                        (prompt "hit enter to move arm")
                         (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot 200)
+                        (moverobot slide-to-fit-moverobot-time)
                         (send *ri* :wait-interpolation)
                         
                         (unix:usleep force-sensor-wait-time)
@@ -563,9 +572,10 @@
           (format t "loop start pos ~a~%" (send loop-start-pose :pos))
           (format t "~%")
           (format t "~%")
-          
+
+          (prompt "hit enter to move arm")
           (send *robot* arm :inverse-kinematics target-pose)
-          (moverobot 200)
+          (moverobot slide-to-fit-moverobot-time)
           (send *ri* :wait-interpolation)
           
           (unix:usleep force-sensor-wait-time)
@@ -654,7 +664,7 @@
                (setq approach-force-vector (scale (v. (v- (get-force-vector) force-offset) approach-vector) approach-vector))
                (setq tangent-force (v- offset-force-vector approach-force-vector))
                (format t "offset force ~a~%" offset-force-vector)
-               
+               p
                (if (> (norm tangent-force) touch-lower-thres) ;; if touch something 
                        (progn
                            (print "tangent force exceeded threshold. Exit twist-to-fit-state")
