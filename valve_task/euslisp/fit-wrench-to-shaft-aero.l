@@ -4,6 +4,7 @@
 (load "package://aero_dgripper/euslisp/aero-dgripper-controller.l")
 (load "package://valve_task/models/task2arena-scene.l")
 (load "package://valve_task/euslisp/valve-task-params.l")
+(load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 
 ;;;;;;;;;; state flow ;;;;;;;;;;
 ;;    fit-wrench-to-shaft
@@ -318,9 +319,9 @@
 ;; slide hand left and right while maintaining a downward force to try to ensure/get a better fitting of the wrench to the shaft
 (defun slide-to-fit-state ()
     (setq shaft-width 13)
-    (setq slide-to-fit-moverobot-time 500)
+
     (format t "Entered slide-to-fit-state~%")
-    (prompt "hit enter to continue")
+    ;; (prompt "hit enter to continue")
     (setq start-pose (send *robot* arm :end-coords :copy-worldcoords))    
     (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
     
@@ -364,6 +365,7 @@
                   (while (< (abs approach-force) touch-lower-thres)
                     (format t "------ force servoing ------~%")
                     (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                    (setq delta (scale approach-inc-dist approach-vector))
                     (send target-pose :translate (scale approach-inc-dist approach-vector))
                     (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                     (format t "target pos ~a~%" (send target-pose :pos))
@@ -381,11 +383,12 @@
                           )
                       )
 
-                    (prompt "hit enter to move arm")
-                    (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot slide-to-fit-moverobot-time)
-                    (send *ri* :wait-interpolation)
-                    
+                    ;; (prompt "hit enter to move arm")
+                    (slide-to-fit-move-arm delta)
+                    ;; (send *robot* arm :inverse-kinematics target-pose)
+                    ;; (moverobot slide-to-fit-moverobot-time)
+                    ;; (send *ri* :wait-interpolation)
+
                     (unix:usleep force-sensor-wait-time)
                     (setq force-vector (get-offset-force-vector))
                     (setq current-tangent-force (v. force-vector tangent-vector))
@@ -405,6 +408,7 @@
                   (while (> (abs approach-force) touch-upper-thres)
                     (format t "+++++++ force servoing ++++++~%")
                     (format t "approach-force above touch-upper-thres. Adjust target-pos.~%")
+                    (setq delta (scale approach-inc-dist approach-vector))
                     (send target-pose :translate (scale (- approach-inc-dist) approach-vector))
                     (send loop-start-pose :translate (scale (- approach-inc-dist) approach-vector))
                     (format t "target pos ~a~%" (send target-pose :pos))
@@ -422,10 +426,11 @@
                           )
                       )
 
-                    (prompt "hit enter to mov arm")
-                    (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot slide-to-fit-moverobot-time)
-                    (send *ri* :wait-interpolation)
+                    ;; (prompt "hit enter to mov arm")
+                    (slide-to-fit-move-arm delta)
+                    ;; (send *robot* arm :inverse-kinematics target-pose)
+                    ;; (moverobot slide-to-fit-moverobot-time)
+                    ;; (send *ri* :wait-interpolation)
 
                     (unix:usleep force-sensor-wait-time)
                     (setq force-vector (get-offset-force-vector))
@@ -460,11 +465,14 @@
                       (while (< current-tangent-force (- tangent-force-thres)) ;; move back right to achieve near zero tangent force
                         (format t "offset force: ~a~%" (get-offset-force-vector))
                         ;; (prompt "moving back to shaft center....")
+                        (setq delta (scale (- tangent-inc-dist) tangent-vector)) ;; move hand right a bit
                         (send target-pose :translate (scale (- tangent-inc-dist) tangent-vector)) ;; move hand right a bit
+
 
                         (if (< (abs approach-force) touch-lower-thres) ;; force servoing in the approach direction
                             (progn
                               (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                              (setq delta (scale approach-inc-dist approach-vector))
                               (send target-pose :translate (scale approach-inc-dist approach-vector))
                               (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                               (format t "target pos ~a~%" (send target-pose :pos))
@@ -481,10 +489,11 @@
                               )
                           )
 
-                        (prompt "hit enter to move arm")
-                        (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot slide-to-fit-moverobot-time)
-                        (send *ri* :wait-interpolation)
+                        ;; (prompt "hit enter to move arm")
+                        (slide-to-fit-move-arm delta)
+                        ;; (send *robot* arm :inverse-kinematics target-pose)
+                        ;; (moverobot slide-to-fit-moverobot-time)
+                        ;; (send *ri* :wait-interpolation)
                         
                         (unix:usleep force-sensor-wait-time)
                         (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
@@ -508,11 +517,13 @@
                       (while (> current-tangent-force tangent-force-thres) ;; move back left to achieve near zero tangent force
                         (format t "offset force: ~a~%" (get-offset-force-vector))
                         ;; (prompt "moving back to shaft center....")
+                        (setq delta (scale tangent-inc-dist tangent-vector)) ;; move hand left a bit        
                         (send target-pose :translate (scale tangent-inc-dist tangent-vector)) ;; move hand left a bit
                         
                         (if (< (abs approach-force) touch-lower-thres) ;; force servoing in the approach direction
                             (progn
                               (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                              (setq delta (scale approach-inc-dist approach-vector))
                               (send target-pose :translate (scale approach-inc-dist approach-vector))
                               (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                               (format t "target pos ~a~%" (send target-pose :pos))
@@ -527,10 +538,11 @@
                               )
                           )
                         
-                        (prompt "hit enter to move arm")
-                        (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot slide-to-fit-moverobot-time)
-                        (send *ri* :wait-interpolation)
+                        ;; (prompt "hit enter to move arm")
+                        (slide-to-fit-move-arm delta)
+                        ;; (send *robot* arm :inverse-kinematics target-pose)
+                        ;; (moverobot slide-to-fit-moverobot-time)
+                        ;; (send *ri* :wait-interpolation)
                         
                         (unix:usleep force-sensor-wait-time)
                         (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
@@ -558,11 +570,14 @@
           (if (equal 0 (mod tangent-index 2)) ;; do a widening zigzag scan in the tangent direction 
               (progn
                 (format t "move left~%")
+                (setq delta (scale (* (/ tangent-index 2) tangent-inc-dist) tangent-vector))
                 (send target-pose :translate (scale (* (/ tangent-index 2) tangent-inc-dist) tangent-vector))
                 (setq last-loop-state "zig-zag-left")
                 )
             (progn
               (format t "move right~%")
+              
+              (setq delta (scale (- (* (/ tangent-index 2) tangent-inc-dist)) tangent-vector))
               (send target-pose :translate (scale (- (* (/ tangent-index 2) tangent-inc-dist)) tangent-vector))
               (setq last-loop-state "zig-zag-right")
               )
@@ -573,10 +588,11 @@
           (format t "~%")
           (format t "~%")
 
-          (prompt "hit enter to move arm")
-          (send *robot* arm :inverse-kinematics target-pose)
-          (moverobot slide-to-fit-moverobot-time)
-          (send *ri* :wait-interpolation)
+          ;; (prompt "hit enter to move arm")
+          (slide-to-fit-move-arm delta)
+          ;; (send *robot* arm :inverse-kinematics target-pose)
+          ;; (moverobot slide-to-fit-moverobot-time)
+          ;; (send *ri* :wait-interpolation)
           
           (unix:usleep force-sensor-wait-time)
           (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
@@ -664,7 +680,7 @@
                (setq approach-force-vector (scale (v. (v- (get-force-vector) force-offset) approach-vector) approach-vector))
                (setq tangent-force (v- offset-force-vector approach-force-vector))
                (format t "offset force ~a~%" offset-force-vector)
-               p
+               
                (if (> (norm tangent-force) touch-lower-thres) ;; if touch something 
                        (progn
                            (print "tangent force exceeded threshold. Exit twist-to-fit-state")
@@ -679,7 +695,7 @@
 (defun turn-shaft-state ()
     (format t "Entered turn-shaft-state.~%")
     (gripper-servo-disable)
-    (unless (turn-wrench (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (float-vector 0 0 (- turn-radius)) :world) (- turn-radius 0))
+    (unless (turn-wrench-torso2 (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (float-vector 0 0 (- turn-radius)) :world) (- turn-radius 0))
       (progn
         (format t "Turn shaft failed.~%")
         (return-from turn-shaft-state)
@@ -853,6 +869,17 @@
       (return-from confirm-shaft-center-found -1))
   )
 
+(defun get-gripper-pos ()
+    (elt (send *ri* :actual-vector) 5)
+    )
+
+(defun get-gripper-err ()
+    (-
+     (elt (send *robot* :angle-vector) 5)
+     (elt (send *ri* :actual-vector) 5)
+     )
+    )
+
 (defun move-arm-to-start-pose2 ()
     (resetpose)
     (setq arm-start-pose (send *robot* arm :end-coords :copy-worldcoords))
@@ -864,7 +891,23 @@
     (moverobot)
     (send *ri* :wait-interpolation)
     )
+
+;; IK for moving arm smoothly in cartesian space.
+;; This assumes that shoulder-y is at -90 deg, and use the lifter to
+;; move in the y direction, while using the arm to move only in the
+;; z-x directions, since the arm does not have enough DOFs to move smoothly
+(defun slide-to-fit-move-arm (delta)
     
+    (setq slide-to-fit-moverobot-time 500)
+
+    (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
+
+    (send target-pose :translate delta)
+    (send *robot* arm :inverse-kinematics target-pose)
+    (moverobot slide-to-fit-moverobot-time)
+    (send *ri* :wait-interpolation)
+)
+
 ;;(setup)
 
 (setq arm :rarm)
