@@ -18,10 +18,10 @@
       (ros::spin-once)
 ;      (setq force-vector-sensor-frame (float-vector rarm_FT_fx rarm_FT_fy rarm_FT_fz))
       (setq force-vector-sensor-frame (float-vector
-                                       (elt (send *ri* :actual-vector) 6)
+                                       (- (elt (send *ri* :actual-vector) 6))
                                        (elt (send *ri* :actual-vector) 7)
                                        (elt (send *ri* :actual-vector) 8)))
-      (setq ft-sensor-to-end-coords-rot (make-coords :rpy #f(1.570796 3.1415926 0)))
+      (setq ft-sensor-to-end-coords-rot (make-coords :rpy #f (1.570796 0 1.570796)))
       (send ft-sensor-to-end-coords-rot :rotate-vector force-vector-sensor-frame)
       )
   (:get-torque-vector ()
