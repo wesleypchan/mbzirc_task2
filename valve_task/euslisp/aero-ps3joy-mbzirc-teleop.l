@@ -1,7 +1,7 @@
 #!/usr/bin/env roseus
 
 (load "package://aero_utils/euslisp/aero-arm-single-wrist-utils.l")
-;; (load "package://valve_task/euslisp/fit-wrench-to-shaft.l")
+(load "package://valve_task/euslisp/fit-wrench-to-shaft-aero.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-arm.l")
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 
@@ -23,6 +23,14 @@
 
 (defun callbackJoy (joyState)
     ;; (print "in callbackJoy")
+
+    ;; If connection is lost ros keeps publishing the previous msg.
+    ;; Need to check for this condition to prevent, for example,
+    ;; the robot keeps running and won't stop.
+    (setq curr_seq (send joyState :header :seq))
+    (if (equal curr_seq prev_seq)
+            (setq joyState (instance sensor_msgs::Joy :init)))
+
 
     ;; euslisp is calling this mulitple time in different threads before the previous callbacks returns.
     ;; Need to prevent problem with this bug!!
@@ -173,7 +181,7 @@
           (if (or (> (abs LStick_UD) stick_thre) (> (abs RStick_LR) stick_thre) (> (abs RStick_UD) stick_thre))
                   (progn
                       (setq moveArmGain 25)
-                      (move-arm (scale moveArmGain (float-vector RStick_UD (- LStick_LR) LStick_UD)))
+                      (move-arm (scale moveArmGain (float-vector RStick_UD LStick_LR LStick_UD)))
                       )
               )
           (if (< DPad_U button_thre)
@@ -211,11 +219,11 @@
               )
           (if (< DPad_D button_thre)
                   (progn
-                      ;; (if (boundp `arm-delta)
-                      ;; (setq arm-delta (fit-wrench-to-shaft arm-delta))
-                      ;; (setq arm-delta (fit-wrench-to-shaft))
-                      ;; )
-                      (format t "no function binded")
+                      (if (boundp `arm-delta)
+                              (setq arm-delta (fit-wrench-to-shaft arm-delta))
+                          (setq arm-delta (fit-wrench-to-shaft))
+                          )
+                      ;; (format t "no function binded")
                       )
               )
           (if (and (equal prev_Select 1) (equal Select 0))
@@ -246,6 +254,11 @@
                       (Task2RecogPose)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
                       (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
+                      )
+              )
+          (if (< DPad_D button_thre)
+                  (progn
+                      (turn-shaft-full-turn)
                       )
               )
           (if (and (< prev_Circle button_thre) (> Circle button_thre))
@@ -435,6 +448,7 @@
             )
         )
     (setq executing_joycb nil)
+    (setq prev_seq curr_seq)
     )
 
 (defun move-base (vel_x vel_y vel_theta time_msec)
@@ -465,7 +479,7 @@
     (setq move-arm-thre 0.02)
 
     (setq in_progress_target_delta (send (send *robot* :rarm :end-coords) :inverse-transform-vector in_progress_target_arm_pos)) ;; convert to local coords
-    (setq target-pos-diff (v- in_progress_target_delta  delta))
+    (setq target-pos-diff (v- in_progress_target_delta delta))
     (format t "in_progress_target_delta ~a~%" in_progress_target_delta)
     (setq i 0) (send *robot* :rarm :end-coords) 
     (while (< i 3)
@@ -657,6 +671,8 @@
 
 (setq executing_joycb nil)
 (setq isMovedBaseZeroOnce t)
+(setq prev_seq -1)
+
 (ros::subscribe "/joy"
                 sensor_msgs::Joy
                 #'callbackJoy 1)
