@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 PROGNAME=$(basename $0)
 LOCAL_IP="192.168.97.136"
+REMOTE_IP="10.207.0.12"
 
 usage() {
   echo "Usage: $PROGNAME [option]"
@@ -50,9 +51,9 @@ sleep 1
 byobu-tmux send-keys -t roscore "roscore" C-m
 
 if [ -z $FLG_LARGE ]; then
-    byobu-tmux send-keys -t udp "roslaunch mbzirc_task2_network aero_remotepc.launch LOCAL_IP:='$LOCAL_IP' USE_LARGEDATA:='false'" C-m
+    byobu-tmux send-keys -t udp "roslaunch mbzirc_task2_network aero_remotepc.launch LOCAL_IP:='$LOCAL_IP' REMOTE_IP:='$REMOTE_IP' USE_LARGEDATA:='false'" C-m
 else
-    byobu-tmux send-keys -t udp "roslaunch mbzirc_task2_network aero_remotepc.launch LOCAL_IP:='$LOCAL_IP' USE_LARGEDATA:='true'" C-m
+    byobu-tmux send-keys -t udp "roslaunch mbzirc_task2_network aero_remotepc.launch LOCAL_IP:='$LOCAL_IP' REMOTE_IP:='$REMOTE_IP' USE_LARGEDATA:='true'" C-m
 fi
 
 byobu-tmux send-keys -t joy "rosrun joy joy_node" C-m
