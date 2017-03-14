@@ -65,7 +65,7 @@
         (if (equal "nan value error" (send *ri* :move-waist target-pos :world step-time))
             (progn
                 (format t "move-waist failed~%")
-                (return-from turn-wrench nil)))
+                (return-from turn-wrench-torso nil)))
 
         (setq index (+ index 1))
         
@@ -152,7 +152,7 @@
         (if (equal "nan value error" (send *ri* :move-waist target-pos :world step-time))
             (progn
                 (format t "move-waist failed~%")
-                (return-from turn-wrench nil)))
+                (return-from turn-wrench-torso2 nil)))
 
         (setq current-gripper-pos (send *aero* :rarm :dgripper :joint-angle))
         (send *aero* :rarm :dgripper :joint-angle (+ current-gripper-pos turn-size))
@@ -241,8 +241,8 @@
         (if (> (norm force-vector) force-limit)
                 (progn
                     (format t "force magnitude ~a exceeded limit ~a~%" (norm force-vector) force-limit)
-                    (format t "exiting turn-wrench-torso2~%")
-                    (return-from turn-wrench-torso2 nil)
+                    (format t "exiting turn-wrench-torso3~%")
+                    (return-from turn-wrench-torso3 nil)
                     )
             )
         (setq index (+ index 1))
@@ -253,11 +253,11 @@
         (if (equal "nan value error" (send *ri* :move-waist target-pos :world step-time))
             (progn
                 (format t "move-waist failed~%")
-                (return-from turn-wrench nil)))
+                (return-from turn-wrench-torso3 nil)))
 
         (setq current-gripper-pos (send *aero* :rarm :dgripper :joint-angle))
         (send *aero* :rarm :dgripper :joint-angle (+ current-gripper-pos turn-size))
-        (moverobot (+ step-time 500))
+        (moverobot (+ step-time 1000))
         
         ;; (prompt "hit enter to step")
         ;; instead of sleep or wait-interpolation, continuous send joint angle command to prevent motor power down
@@ -279,7 +279,7 @@
         (if (> (norm offset-force-vector) gripper-force-limit)
             (progn
               (format t "gripper force excceded limit. Terminating turn-wrench~%")
-              (return-from turn-wrench)
+              (return-from turn-wrench-torso3 nil)
               )
           )
         (if (< (abs offset-force-wrench-normal) wrench-normal-force-lower-thres)
