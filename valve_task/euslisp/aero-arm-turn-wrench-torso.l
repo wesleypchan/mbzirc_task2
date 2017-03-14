@@ -257,7 +257,7 @@
 
         (setq current-gripper-pos (send *aero* :rarm :dgripper :joint-angle))
         (send *aero* :rarm :dgripper :joint-angle (+ current-gripper-pos turn-size))
-        (moverobot (+ step-time 1000))
+        (moverobot (+ step-time 500))
         
         ;; (prompt "hit enter to step")
         ;; instead of sleep or wait-interpolation, continuous send joint angle command to prevent motor power down
