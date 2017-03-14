@@ -14,6 +14,9 @@ sensor_msgs/CompressedImage handeye__image_color_throttle__compressed
 dynamic_reconfigure/ConfigDescription handeye__image_color_throttle__compressed__parameter_descriptions
 dynamic_reconfigure/Config handeye__image_color_throttle__compressed__parameter_updates
 
+#hokuyo scan
+sensor_msgs/LaserScan scan
+
 #pose arrays
 geometry_msgs/PoseArray wrench_3d_projector__pose_bottom
 geometry_msgs/PoseArray wrench_3d_projector__pose_top

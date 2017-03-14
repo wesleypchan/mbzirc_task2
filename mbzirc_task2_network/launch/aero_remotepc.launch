@@ -157,6 +157,7 @@
     <node name="relay_tf" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_throttle /tf" />
     <node name="relay_tf_static" type="relay" pkg="topic_tools" output="screen" args="/from_fc/tf_static /tf_static" />
     <node name="relay_zed_odom" type="relay" pkg="topic_tools" output="screen" args="/from_fc/zed/odom /zed/odom" />
+    <node name="relay_hokuyo" type="relay" pkg="topic_tools" output="screen" args="/from_fc/scan /scan" />
   </group>
 
   <group ns="zed">
