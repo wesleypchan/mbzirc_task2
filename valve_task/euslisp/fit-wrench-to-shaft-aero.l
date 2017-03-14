@@ -7,6 +7,8 @@
 (load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 
 ;;;;;;;;;; state flow ;;;;;;;;;;
+;;   turn-shaft-full-turn
+;;             |
 ;;    fit-wrench-to-shaft
 ;;             |
 ;; detect-shaft-center-state
@@ -732,7 +734,7 @@
     (format t "Entered turn-shaft-state.~%")
     (gripper-servo-disable)
     ;; (unless (turn-wrench-torso2 (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (float-vector 0 0 (- turn-radius)) :world) (- turn-radius 0))
-    (unless (turnWrenchTorso2)
+    (unless (turnWrenchTorso3)
       (progn
         (format t "Turn shaft failed.~%")
         (return-from turn-shaft-state)

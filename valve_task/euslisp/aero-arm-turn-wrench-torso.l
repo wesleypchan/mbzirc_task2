@@ -217,7 +217,7 @@
     ;; (unix:usleep 1000000)
         
     ;; starting tracing circular trajectory
-    (prompt "hit enter to start executing trajectory")
+    ;; (prompt "hit enter to start executing trajectory")
     (setq index 0)
     (setq turn-size 5)
     (setq step-time 300)
@@ -259,7 +259,7 @@
         (send *aero* :rarm :dgripper :joint-angle (+ current-gripper-pos turn-size))
         (moverobot (+ step-time 1000))
         
-        (prompt "hit enter to step")
+        ;; (prompt "hit enter to step")
         ;; instead of sleep or wait-interpolation, continuous send joint angle command to prevent motor power down
         (setq start-time (instance ros::time :now))
         (setq current-time (instance ros::time :now))
@@ -337,7 +337,7 @@
 
 (defun turnWrenchTorso3 ()
     (gripper-servo-disable)
-    (setq turn-arc 85)
+    (setq turn-arc 95)
     (turn-wrench-torso3 turn-radius turn-arc)
     )
 
