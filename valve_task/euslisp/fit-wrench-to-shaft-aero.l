@@ -33,12 +33,12 @@
 
 (defun turn-shaft-full-turn ()
 
-    (format t "enter turn-shaft-full-turn")
+    (format t "enter turn-shaft-full-turn~%")
     (setq turn-shaft-start-arm-pose (send *robot* arm :end-coords :copy-worldcoords))
     (setq start-pose-delta 0)
     (setq turn_count 1)
+    (setq start-pose-delta (fit-wrench-to-shaft start-pose-delta))
     (while (< turn_count 5)
-        (setq start-pose-delta (fit-wrench-to-shaft start-pose-delta))
         (if start-pose-delta ;; if successfully turned without error
                 (progn
                     (setq wrench-normal-vector ;; in the direction towards the shaft, in lifter frame
@@ -68,6 +68,9 @@
                 )
             )
         )
+    (format t "detaching wrench")
+    (setq detach-wrench-move-waist-distance 40)
+    (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
     )
 
 
@@ -331,7 +334,7 @@
 ;; slide hand left and right while maintaining a downward force to try to ensure/get a better fitting of the wrench to the shaft
 (defun slide-to-fit-state ()
     (get-force-offset)
-    (setq safety-force-limit 60)
+    (setq safety-force-limit 70)
     (setq shaft-width 19)
 
     (format t "Entered slide-to-fit-state~%")
@@ -341,7 +344,7 @@
     
     (setq force-sensor-wait-time 1000)
 
-    (setq tangent-scan-distance 30.0)
+    (setq tangent-scan-distance 40.0)
     (setq tangent-inc-dist 5.0)       
     (setq approach-inc-dist 2.0)
     (setq tangent-force-thres 1.0)
@@ -916,24 +919,28 @@
     (if (and (eq (elt delta 0) 0.0) (eq (elt delta 1) 0.0)) ;; if moving in approach direction
             (progn ;; moving in approach direction, can move faster
                 (format t "moving in approach direction, can move faster~%")
+                (format t "~%")
+                (format t "~%")
                 (setq slide-to-fit-moverobot-time 300)
                 (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
                 (send target-pose :translate delta)
                 (send *robot* arm :inverse-kinematics target-pose)
                 (moverobot slide-to-fit-moverobot-time)
                 ;; (send *ri* :wait-interpolation)
-                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 100000))
+                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 50000))
                 )
         
             (progn
                 (format t "moving in tangent direction, can move slower~%")
+                (format t "~%")
+                (format t "~%")
                 (setq slide-to-fit-moverobot-time 300)
                 (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
                 (send target-pose :translate delta)
                 (send *robot* arm :inverse-kinematics target-pose)
                 (moverobot slide-to-fit-moverobot-time)
                 ;; (send *ri* :wait-interpolation)
-                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 1000000))
+                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 500000))
                 )
             )
         )

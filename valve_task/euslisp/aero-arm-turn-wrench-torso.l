@@ -136,7 +136,7 @@
 
         (setq force-vector (get-offset-force-vector))
         (format t "force: ~a magnitude: ~a~%" force-vector (norm force-vector))
-        (setq force-limit 40)
+        (setq force-limit 50)
         (if (> (norm force-vector) force-limit)
                 (progn
                     (format t "force magnitude ~a exceeded limit ~a~%" (norm force-vector) force-limit)
@@ -226,7 +226,7 @@
     (setq start-time (instance ros::time :now))
     (setq current-time (instance ros::time :now))
     (while (< (- (send current-time :to-sec) (send start-time :to-sec))
-              (* (+ step-time 200) 0.001))
+              (* (+ step-time 100) 0.001))
         
         (moverobot 100) ;; send arm command continuously to prevent current down
         (setq current-time (instance ros::time :now))
@@ -237,7 +237,7 @@
 
         (setq force-vector (get-offset-force-vector))
         (format t "force: ~a magnitude: ~a~%" force-vector (norm force-vector))
-        (setq force-limit 40)
+        (setq force-limit 50)
         (if (> (norm force-vector) force-limit)
                 (progn
                     (format t "force magnitude ~a exceeded limit ~a~%" (norm force-vector) force-limit)
@@ -257,14 +257,14 @@
 
         (setq current-gripper-pos (send *aero* :rarm :dgripper :joint-angle))
         (send *aero* :rarm :dgripper :joint-angle (+ current-gripper-pos turn-size))
-        (moverobot (+ step-time 1000))
+        (moverobot (+ step-time 700))
         
         ;; (prompt "hit enter to step")
         ;; instead of sleep or wait-interpolation, continuous send joint angle command to prevent motor power down
         (setq start-time (instance ros::time :now))
         (setq current-time (instance ros::time :now))
         (while (< (- (send current-time :to-sec) (send start-time :to-sec))
-                  (* (+ step-time 200) 0.001))    
+                  (* (+ step-time 100) 0.001))    
             (moverobot 100) ;; send arm command continuously to prevent current down
             (setq current-time (instance ros::time :now))
             )
