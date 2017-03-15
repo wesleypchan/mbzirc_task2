@@ -4,18 +4,27 @@
 (load "package://aero_dgripper/euslisp/aero-dgripper-controller.l")
 (load "package://valve_task/models/task2arena-scene.l")
 (load "package://valve_task/euslisp/valve-task-params.l")
+(load "package://valve_task/euslisp/aero-arm-turn-wrench-torso.l")
 
 ;;;;;;;;;; state flow ;;;;;;;;;;
+;;   turn-shaft-full-turn
+;;             |
 ;;    fit-wrench-to-shaft
 ;;             |
 ;; detect-shaft-center-state
 ;;             |
+;;;;;      slide-to-fit-state
+;;;;;             |
+;;             |
 ;;     turn-shaft-state
 
+(setq arm :rarm)
 
 (setq turn-radius wrenchLength)
 
 (setq debug t)
+
+(setq wrenchFittingAlignAngle 0)
 
 (defun prompt (msg)
     (if debug
@@ -24,44 +33,86 @@
                 (read-char)))
     )
 
-;; move in shaft direction until force is detected 
-(defun detect-shaft-contact ()
-  
-  (setq contact-force-thres 1.0)
-  (get-force-offset)
-  (setq offset-force (get-offset-force-vector))
-  (setq approach-force (v. offset-force approach-vector))
+(defun turn-shaft-full-turn ()
 
-  ;; move in approach direction until detected force
-  (while (< (abs approach-force) contact-force-thres)
-    (move-arm (scale 1 approach-vector))
-    (unix::sleep 1)
-    (setq approach-force (v. (get-offset-force-vector) approach-vector))
-    (format t "approach-force ~a~%" approach-force)
-         
+    (format t "enter turn-shaft-full-turn~%")
+    (setq turn-shaft-start-arm-pose (send *robot* arm :end-coords :copy-worldcoords))
+    (setq start-pose-delta 0)
+    (setq turn_count 1)
+    (setq start-pose-delta (fit-wrench-to-shaft start-pose-delta))
+    (while (< turn_count 5)
+        (if start-pose-delta ;; if successfully turned without error
+                (progn
+                    (setq wrench-normal-vector ;; in the direction towards the shaft, in lifter frame
+                          (float-vector
+                           (sin (deg2rad (get-gripper-pos)))
+                           0
+                           (- (cos (deg2rad (get-gripper-pos)))))
+                          )
+                    (format t "detaching wrench")
+                    (setq detach-wrench-move-waist-distance 40)
+                    (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
+                    (gripper-servo-enable)
+                    (gripper-servo-pos 0)
+                    (format t "move arm back to turn-shaft-start-arm-pose")
+                    (format t "turn-shaft-start-arm-pose ~a~%" turn-shaft-start-arm-pose)
+                    (send *robot* arm :inverse-kinematics turn-shaft-start-arm-pose)
+                    (moverobot 4000)
+                    (format t "move lifter back to start position")
+                    (movewaist #f(150 0 -50) :world 4000) 
+                    (unix:sleep 4)
+                    (setq start-pose-delta (fit-wrench-to-shaft start-pose-delta))
+                    (setq turn_count (+ turn_count 1))
+                    )
+            (progn ;; if failed to turn
+                (print "need to implement recovery method")
+                (return-from turn-shaft-full-turn nil)
+                )
+            )
+        )
+    (format t "detaching wrench")
+    (setq detach-wrench-move-waist-distance 40)
+    (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
     )
 
-  ;; move back in the opposite direction to maintain minimum force 
-  ;; this is to avoid pressing too hard on the shaft so the wrench head can't slide on it
-  (unix::sleep 2) ;; wait for force reading to settle
-  (setq approach-force (v. (get-offset-force-vector) approach-vector))
-  (while (> (abs approach-force) contact-force-thres)
-    (move-arm (scale -0.5 approach-vector)) ;; move in opposite direction 
-    (unix::sleep 2)
-    (setq approach-force (v. (get-offset-force-vector) approach-vector))
-    (format t "approach-force ~a~%" approach-force)
-    
+(defun turn-shaft-disengage-move-arm ()
+
+    (format t "enter turn-shaft-full-turn~%")
+    (matchsimwithrobot)
+    (setq turn-shaft-start-arm-pose (send *robot* arm :end-coords :copy-worldcoords))
+    (format t "1 turn-shaft-start-arm-pose ~a~%" turn-shaft-start-arm-pose)
+    (setq start-pose-delta 0)
+
+    (turnWrenchTorso3)
+
+
+    (setq wrench-normal-vector ;; in the direction towards the shaft, in lifter frame
+          (float-vector
+           (sin (deg2rad (get-gripper-pos)))
+           0
+           (- (cos (deg2rad (get-gripper-pos)))))
+          )
+    (format t "detaching wrench")
+    (setq detach-wrench-move-waist-distance 40)
+    (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
+    (gripper-servo-enable)
+    (gripper-servo-pos 0)
+    (format t "move arm back to slightly above turn-shaft-start-arm-pose")
+    (format t "2 turn-shaft-start-arm-pose ~a~%" turn-shaft-start-arm-pose)
+    (send *robot* arm :inverse-kinematics (send turn-shaft-start-arm-pose :translate #f(0 0 50)))
+    (moverobot 4000)
+    (format t "move lifter back to start position")
+    (movewaist #f(150 0 -50) :world 4000) 
+    (unix:sleep 4)
     )
-  
-    
-)
 
 
 ;; Entry point to the entire state machine!
 (defun fit-wrench-to-shaft (&optional prev-arm-pose-delta)
     (format t "Entered fit-wrench-to-shaft.~%")
+
     (gripper-servo-enable)
-    (gripper-servo-pos 0 1)
+    (gripper-servo-pos wrenchFittingAlignAngle 1)
 
     (setq approach-vector #f(0 0 -1)) ;; local frame wrt the hand
     (setq tangent-vector #f(0 1 0)) ;; local frame wrt the hand
@@ -81,6 +132,7 @@
     (setq detect-shaft-center-result (detect-shaft-center-state))
     ;; (setq detect-shaft-center-result 0)
 
+
     (format t "detect-shaft-center-result ~a~%" detect-shaft-center-result)
 
     (if (boundp `prev-arm-pose-delta)
@@ -99,9 +151,10 @@
         (send *robot* arm :inverse-kinematics scan-for-contact-state-start-pose)
         (if (boundp `*irtviewer*)
                 (send *irtviewer* :draw-objects))
-        (moverobot)
+        (moverobot 1000)
         (send *ri* :wait-interpolation)
-        (if (< detect-shaft-center-result 0)
+        (unix:sleep 2) ;; wait for force sensor values to settle
+        (if (< detect-shaft-center-result 0) ;; negative means detected force while moving left 
                 (setq current-delta (* 3 (exp (exp (- (abs detect-shaft-center-result))))))
             (setq current-delta (- (* 3 (exp (exp (- (abs detect-shaft-center-result)))))))
             )
@@ -128,7 +181,8 @@
 ;; move in approach-vector direction until touched something 
 (defun scan-for-contact-state (start-pos-delta)
        (format t "Entered scan-for-contact-state with start-pos-delta ~a~%" start-pos-delta)
-       (setq force-offset (get-force-offset))
+       (unix:sleep 2)
+       (get-force-offset)
        (setq touch-lower-thres 1.0)
        (setq touch-upper-thres 3.5)
        
@@ -191,24 +245,48 @@
                          )
                      )
                    (inc approach-index)
+
+                   ;; check absolute height of hand
+                   (setq shaftHeight 980)
+                   (setq fittingPoseLifterHeight 1110)
+                   (setq armEndHeight (elt (send *robot* :rarm :end-coords :worldpos) 2))
+                   
+                   (setq wrenchHeadHeight
+                         (- (+ fittingPoseLifterHeight armEndHeight)
+                            wrenchLength
+                            20 ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length
+                            )
+                         )
+                   (if (< wrenchHeadHeight
+                          (- shaftHeight
+                             60) ;; error tollerance in calculating wrenchheadheight
+                          )
+                           (progn
+                               (format t "----- wrench head height too low. Must have missed shaft completely -----~%")
+                               (format t "~%")
+                               (format t "~%")
+                               (return-from scan-for-contact-state)
+                               )
+                       )
+                   
+                   
                    )
            (inc tangent-index)
            )
        ) ;; end STATE: scan for contact
 
 (defun detect-shaft-center-state ()
-    (setq tangent-force-thres 1.5)
+    (format t "Entered detect-shaft-center-state.~%")
+    (format t "offset force: ~a~%" (get-offset-force-vector))
     (setq force-vector (get-offset-force-vector))
     (setq tangent-force (v. force-vector tangent-vector)) 
-    (format t "offset force: ~a~%" (get-offset-force-vector))
-    (format t "Entered detect-shaft-center-state.~%")
     (slide-to-fit-state)
     )
 
 ;; STATE: detect shaft center
 ;; Move the hand slightly left and right to determine which side the shaft is on
 (defun detect-shaft-center-state-old ()
-    (setq tangent-force-thres 1.5)
+    (setq tangent-force-thres 1.4)
     (setq force-vector (get-offset-force-vector))
     (setq tangent-force (v. force-vector tangent-vector)) 
     (format t "offset force: ~a~%" (get-offset-force-vector))
@@ -245,10 +323,10 @@
                 (format t "target-pose ~a~%" (send target-pose :pos))
                 (if (> tangent-inc-dist 0)
                         (format t "detecting shaft center. Moving left.~%")
-                    (format t "detecting shaft center. Moving right.~%")
+                    (format t "detecting shaft cEnter. Moving Right.~%")
                     )
-                ;; (prompt "hit enter to continue....")
-                (send *robot* arm :inverse-kinematics target-pose)
+                ;; (Prompt "Hit Enter To Continue....")
+                (Send *Robot* Arm :Inverse-Kinematics Target-Pose)
                 (moverobot 300)
                 (send *ri* :wait-interpolation)
 
@@ -314,21 +392,27 @@
 ;; Once the wrench has detected contact with force in the approach direciton, but no force in the tangent direction,
 ;; slide hand left and right while maintaining a downward force to try to ensure/get a better fitting of the wrench to the shaft
 (defun slide-to-fit-state ()
-    (setq shaft-width 13)
+    (get-force-offset)
+    (setq safety-force-limit 70)
+    (setq shaft-width 19)
+
     (format t "Entered slide-to-fit-state~%")
+    ;; (prompt "hit enter to continue")
     (setq start-pose (send *robot* arm :end-coords :copy-worldcoords))    
     (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
     
     (setq force-sensor-wait-time 1000)
 
-    (setq tangent-scan-distance 20.0)
-    (setq tangent-inc-dist 2.0)       
-    (setq approach-inc-dist 1.0)
+    (setq tangent-scan-distance 40.0)
+    (setq tangent-inc-dist 5.0)       
+    (setq approach-inc-dist 2.0)
+    (setq tangent-force-thres 1.0)
+
     
-    (setq detected-force-left nil)
-    (setq detected-force-right nil)
-    (setq tangent-index 0) ;; index for scanning in the tangent direction
-    (setq loop-start-pose (send start-pose :copy-coords))
+    (Setq Detected-Force-Left Nil)
+    (Setq Detected-Force-Right Nil)
+    (Setq Tangent-Index 0) ;; Index For Scanning In The Tangent Direction
+    (Setq Loop-Start-Pose (Send Start-Pose :Copy-coords))
     (print "loop-start-pose")
     (print loop-start-pose)
     (print "")
@@ -342,10 +426,10 @@
         (setq approach-force (v. force-vector approach-vector)) 
 
         (setq had-to-servo-force nil)
-        (format t "******** while loop begin *********~%")
+        (format t "******** while     loop      begin *********~%")
         (format t "force-vector ~a~%" force-vector)
-        (format t "last-loop-state ~a~%" last-loop-state)
-        (format t "had-to-servo-force ~a~%" had-to-servo-force)
+        (format t "tangent-force ~a~%" tangent-force)
+        (format t "approach-force ~a~%" approach-force)
         (format t "~%")
         (format t "~%")
 
@@ -353,38 +437,45 @@
 
         ;; servo force in approach direction
 
-        (format t "had-to-servo-force should be nil: ~a~%" had-to-servo-force)        
         (if (and (< (abs approach-force) touch-lower-thres) (not (equal last-loop-state "force-servo-dec"))) ;; force servoing in the approach direction
                 (progn ;; if force below threshold
                   (while (< (abs approach-force) touch-lower-thres)
                     (format t "------ force servoing ------~%")
                     (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                    (setq delta (scale approach-inc-dist approach-vector))
                     (send target-pose :translate (scale approach-inc-dist approach-vector))
                     (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                     (format t "target pos ~a~%" (send target-pose :pos))
                     (format t "loop start pos ~a~%" (send loop-start-pose :pos))
                     (format t "~%")
-
+                    
                     ;; check if hand moved too far in approach direction
-                    (if (> (abs (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector))
+
+                    (if (> (abs (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector)) ;; check relative to start position 
                            (* 2 shaft-width))
                         (progn
-                          (format t "----- moved to far. Must have missed shaft completely -----~%")
+                          (format t "----- moved too far. Must have missed shaft completely -----~%")
                           (format t "~%")
                           (format t "~%")
                           (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                           )
                       )
+                    
 
-                    
-                    (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot 200)
-                    (send *ri* :wait-interpolation)
-                    
+                    ;; (prompt "hit enter to move arm")
+                    (slide-to-fit-move-arm delta)
+                    ;; (send *robot* arm :inverse-kinematics target-pose)
+                    ;; (moverobot slide-to-fit-moverobot-time)
+                    ;; (send *ri* :wait-interpolation)
+                    (if (> (norm (get-offset-force-vector)) safety-force-limit)
+                            (return-from slide-to-fit-state slide-to-fit-state-return-helper))                            
+
                     (unix:usleep force-sensor-wait-time)
                     (setq force-vector (get-offset-force-vector))
+                    (format t "get-offset-force-vector ~a~%" (get-offset-force-vector))
                     (setq current-tangent-force (v. force-vector tangent-vector))
                     (setq approach-force (v. force-vector approach-vector))
+                    (format t "~%")
                     (format t "force-vector ~a~%" force-vector)
                     (format t "approach-force ~a~%" approach-force)
                     (format t "~%")
@@ -400,6 +491,7 @@
                   (while (> (abs approach-force) touch-upper-thres)
                     (format t "+++++++ force servoing ++++++~%")
                     (format t "approach-force above touch-upper-thres. Adjust target-pos.~%")
+                    (setq delta (scale (- approach-inc-dist) approach-vector))
                     (send target-pose :translate (scale (- approach-inc-dist) approach-vector))
                     (send loop-start-pose :translate (scale (- approach-inc-dist) approach-vector))
                     (format t "target pos ~a~%" (send target-pose :pos))
@@ -410,16 +502,42 @@
                     (if (> (abs (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector))
                            (* 2 shaft-width))
                         (progn
-                          (format t "----- moved to far. Must have missed shaft completely -----~%")
+                          (format t "----- moved too far. Must have missed shaft completely -----~%")
                           (format t "~%")
                           (format t "~%")
                           (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                           )
                       )
+                    ;; check absolute height of hand
+                    (setq shaftHeight 980)
+                    (setq fittingPoseLifterHeight 1110)
+                    (setq armEndHeight (elt (send *robot* :rarm :end-coords :worldpos) 2))
 
-                    (send *robot* arm :inverse-kinematics target-pose)
-                    (moverobot 200)
-                    (send *ri* :wait-interpolation)
+                    (setq wrenchHeadHeight
+                          (- (+ fittingPoseLifterHeight armEndHeight)
+                             wrenchLength
+                             20 ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length
+                             )
+                          )
+                    (if (< wrenchHeadHeight
+                           (- shaftHeight
+                              60) ;; error tollerance in calculating wrenchheadheight
+                           )
+                        (progn
+                          (format t "----- wrench head height too low. Must have missed shaft completely -----~%")
+                          (format t "~%")
+                          (format t "~%")
+                          (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
+                          )
+                        )
+                    
+                    ;; (prompt "hit enter to mov arm")
+                    (slide-to-fit-move-arm delta)
+                    ;; (send *robot* arm :inverse-kinematics target-pose)
+                    ;; (moverobot slide-to-fit-moverobot-time)
+                    ;; (send *ri* :wait-interpolation)
+                    (if (> (norm (get-offset-force-vector)) safety-force-limit)
+                            (return-from slide-to-fit-state (slide-to-fit-state-return-helper)))
 
                     (unix:usleep force-sensor-wait-time)
                     (setq force-vector (get-offset-force-vector))
@@ -440,7 +558,6 @@
 
         ;; after force has been served to the right amount
         ;; check if detected shaft left or right
-        (format t "check had-to-servo-force: ~a~%" had-to-servo-force)
         (unless had-to-servo-force
           (if (< tangent-force (- tangent-force-thres)) ;; if detected force when moving left (force negative value)
               (progn
@@ -454,11 +571,14 @@
                       (while (< current-tangent-force (- tangent-force-thres)) ;; move back right to achieve near zero tangent force
                         (format t "offset force: ~a~%" (get-offset-force-vector))
                         ;; (prompt "moving back to shaft center....")
+                        (setq delta (scale (- tangent-inc-dist) tangent-vector)) ;; move hand right a bit
                         (send target-pose :translate (scale (- tangent-inc-dist) tangent-vector)) ;; move hand right a bit
+
 
                         (if (< (abs approach-force) touch-lower-thres) ;; force servoing in the approach direction
                             (progn
                               (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                              (setq delta (scale approach-inc-dist approach-vector))
                               (send target-pose :translate (scale approach-inc-dist approach-vector))
                               (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                               (format t "target pos ~a~%" (send target-pose :pos))
@@ -468,16 +588,24 @@
                         (if (> (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector)
                                (* 2 shaft-width))
                             (progn
-                              (format t "----- moved to far while centering. Must have missed shaft completely -----~%")
+                              (format t "----- moved too far while centering. Must have missed shaft completely -----~%")
                               (format t "~%")
                               (format t "~%")
                               (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                               )
                           )
-                        (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot 200)
-                        (send *ri* :wait-interpolation)
-                        
+
+                        ;; (prompt "hit enter to move arm")
+                        (slide-to-fit-move-arm delta)
+                        ;; (send *robot* arm :inverse-kinematics target-pose)
+                        ;; (moverobot slide-to-fit-moverobot-time)
+                        ;; (send *ri* :wait-interpolation)
+                        (if (> (norm (get-offset-force-vector)) safety-force-limit)
+                                (progn
+                                    (format t "force limit over!!! stopping")
+                                    (return-from slide-to-fit-state nil))
+                            )
+
                         (unix:usleep force-sensor-wait-time)
                         (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
                         (format t "current-tangent-force ~a~%" current-tangent-force)
@@ -500,11 +628,13 @@
                       (while (> current-tangent-force tangent-force-thres) ;; move back left to achieve near zero tangent force
                         (format t "offset force: ~a~%" (get-offset-force-vector))
                         ;; (prompt "moving back to shaft center....")
+                        (setq delta (scale tangent-inc-dist tangent-vector)) ;; move hand left a bit        
                         (send target-pose :translate (scale tangent-inc-dist tangent-vector)) ;; move hand left a bit
                         
                         (if (< (abs approach-force) touch-lower-thres) ;; force servoing in the approach direction
                             (progn
                               (format t "approach-force below touch-lower-thres. Adjust target-pos.~%")
+                              (setq delta (scale approach-inc-dist approach-vector))
                               (send target-pose :translate (scale approach-inc-dist approach-vector))
                               (send loop-start-pose :translate (scale approach-inc-dist approach-vector))
                               (format t "target pos ~a~%" (send target-pose :pos))
@@ -519,10 +649,17 @@
                               )
                           )
                         
-                        (send *robot* arm :inverse-kinematics target-pose)
-                        (moverobot 200)
-                        (send *ri* :wait-interpolation)
-                        
+                        ;; (prompt "hit enter to move arm")
+                        (slide-to-fit-move-arm delta)
+                        ;; (send *robot* arm :inverse-kinematics target-pose)
+                        ;; (moverobot slide-to-fit-moverobot-time)
+                        ;; (send *ri* :wait-interpolation)
+                        (if (> (norm (get-offset-force-vector)) safety-force-limit)
+                                (progn
+                                    (format t "Force limit over!!! Stopping")
+                                    (return-from slide-to-fit-state nil))
+                            )
+
                         (unix:usleep force-sensor-wait-time)
                         (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
                         (format t "current-tangent-force ~a~%" current-tangent-force)
@@ -538,7 +675,7 @@
           (if (> (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector)
                  (* 2 shaft-width))
               (progn
-                (format t "----- moved to far. Must have missed shaft completely -----~%")
+                (format t "----- moved too far. Must have missed shaft completely -----~%")
                 (format t "~%")
                 (format t "~%")
                 (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
@@ -549,11 +686,14 @@
           (if (equal 0 (mod tangent-index 2)) ;; do a widening zigzag scan in the tangent direction 
               (progn
                 (format t "move left~%")
+                (setq delta (scale (* (/ tangent-index 2) tangent-inc-dist) tangent-vector))
                 (send target-pose :translate (scale (* (/ tangent-index 2) tangent-inc-dist) tangent-vector))
                 (setq last-loop-state "zig-zag-left")
                 )
             (progn
               (format t "move right~%")
+              
+              (setq delta (scale (- (* (/ tangent-index 2) tangent-inc-dist)) tangent-vector))
               (send target-pose :translate (scale (- (* (/ tangent-index 2) tangent-inc-dist)) tangent-vector))
               (setq last-loop-state "zig-zag-right")
               )
@@ -563,11 +703,18 @@
           (format t "loop start pos ~a~%" (send loop-start-pose :pos))
           (format t "~%")
           (format t "~%")
-          
-          (send *robot* arm :inverse-kinematics target-pose)
-          (moverobot 200)
-          (send *ri* :wait-interpolation)
-          
+
+          ;; (prompt "hit enter to move arm")
+          (slide-to-fit-move-arm delta)
+          ;; (send *robot* arm :inverse-kinematics target-pose)
+          ;; (moverobot slide-to-fit-moverobot-time)
+          ;; (send *ri* :wait-interpolation)
+          (if (> (norm (get-offset-force-vector)) safety-force-limit)
+                  (progn
+                      (format t "Force limit over!!! Stopping")
+                      (return-from slide-to-fit-state nil))
+              )
+
           (unix:usleep force-sensor-wait-time)
           (setq current-tangent-force (v. (get-offset-force-vector) tangent-vector))
           (setq apporach-force (v. (get-offset-force-vector) approach-vector))
@@ -579,9 +726,11 @@
         ) ;; end doing zig zag scan 
 
     ;; done zig zag scan, but still can't find shaft center, so return to start pose
+    (move-arm #f(0 0 30))
     (send *robot* arm :inverse-kinematics start-pose)
     (moverobot 2000)
     (send *ri* :wait-interpolation)
+    (unix:sleep 2)
     
     (slide-to-fit-state-return-helper)
 
@@ -590,11 +739,15 @@
 (defun slide-to-fit-state-return-helper ()
 
 ;;    (return-from slide-to-fit-state-return-helper (confirm-shaft-center-found))
+    (format t "In slide-to-fit-state-return-helper~%")
+    (format t "detected-force-right ~a~%" detected-force-right)
+    (format t "detected-force-left ~a~%" detected-force-left)
     (cond
      (detected-force-right 1)
      (detected-force-left -1)
      ((equal 0 (mod tangent-index 2)) -1) ;; was moving left
      ((equal 0 (mod tangent-index 2)) 1) ;; was moving right
+     (t 1)
      )
     )
 
@@ -669,7 +822,8 @@
 (defun turn-shaft-state ()
     (format t "Entered turn-shaft-state.~%")
     (gripper-servo-disable)
-    (unless (turn-wrench (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (float-vector 0 0 (- turn-radius)) :world) (- turn-radius 0))
+    ;; (unless (turn-wrench-torso2 (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (float-vector 0 0 (- turn-radius)) :world) (- turn-radius 0))
+    (unless (turnWrenchTorso3)
       (progn
         (format t "Turn shaft failed.~%")
         (return-from turn-shaft-state)
@@ -750,55 +904,27 @@
 ;; move the hand directly above the detected shaft pos 
 (defun align-wrench-with-shaft ()
     (print "entered align-wrench-with-shaft")
-    (format t "in align-wrench-with-shaft hrp2g rarm end-coords ~a~%" (send *hrp2g* :rarm :end-coords))
     (setq time_now (instance ros::time :now))
 ;    (if (send *tfl* :wait-for-transform "/RARM_END_COORDS" "valve" time_now 30)
-    (if (send *tfl* :wait-for-transform "/RARM_END_COORDS" "valve" (instance ros::time :init) 30)
-;    (if (send *tfl* :wait-for-transform "/RARM_END_COORDS" "cluster_decomposer_finaloutput00" time_now 20)
-;    (if (send *tfl* :wait-for-transform "/RARM_END_COORDS" "dummy_shaft" time_now 10)
+    (if (send *tfl* :wait-for-transform "/rarm_end_coords" "valve" (instance ros::time :init) 30)
+;    (if (send *tfl* :wait-for-transform "/rarm_end_coords" "cluster_decomposer_finaloutput00" time_now 20)
+;    (if (send *tfl* :wait-for-transform "/rarm_end_coords" "dummy_shaft" time_now 10)
        (progn
          (print "Found shaft tf.")
-;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/RARM_END_COORDS" "valve" time_now))
-         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/RARM_END_COORDS" "valve" (instance ros::time :init)))
+;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/rarm_end_coords" "valve" time_now))
+         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/rarm_end_coords" "valve" (instance ros::time :init)))
          (setq ground-to-shaft-coords (send *tfl* :lookup-transform "/ground" "valve" time_now))
-         (setq link6-to-end-coords (send *tfl* :lookup-transform "/RARM_LINK6" "RARM_END_COORDS" time_now))
-         (setq ground-to-link6-coords (send *tfl* :lookup-transform "/ground" "RARM_LINK6" time_now))
-         (setq ground-to-end-coords (send *tfl* :lookup-transform "/ground" "RARM_END_COORDS" time_now))
+         (setq ground-to-end-coords (send *tfl* :lookup-transform "/ground" "rarm_end_coords" time_now))
          (format t "hand-to-shaft-coords ~a~%" hand-to-shaft-coords)
          (format t "ground-to-shaft-coords ~a~%" ground-to-shaft-coords)
-         (format t "link6-to-end-coords ~a~%" link6-to-end-coords)
-         (format t "ground-to-link6-coords ~a~%" ground-to-link6-coords)
          (format t "ground-to-end-coords ~a~%" ground-to-end-coords)
-;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/RARM_END_COORDS" "cluster_decomposer_finaloutput00" time_now))
-;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/RARM_END_COORDS" "dummy_shaft" (instance ros::time :init)))
+;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/rarm_end_coords" "cluster_decomposer_finaloutput00" time_now))
+;         (setq hand-to-shaft-coords (send *tfl* :lookup-transform "/rarm_end_coords" "dummy_shaft" (instance ros::time :init)))
          (setq shaft-world-coords (send (send *robot* :rarm :end-coords :copy-worldcoords) :translate (send hand-to-shaft-coords :pos)))
-         (send shaft-world-coords :rotate (send hand-to-shaft-coords :rot))  ;; use shaft orientation
-         (cond
-           ((equal wrenchSize 15) (setq arm-above-shaft-pos (send (send shaft-world-coords :copy-coords) :translate (float-vector 0 0 240))))
-           ((equal wrenchSize 17) (setq arm-above-shaft-pos (send (send shaft-world-coords :copy-coords) :translate (float-vector 0 0 265))))
-           )
-         ;(setq arm-above-shaft-pos (make-coords :pos (send arm-above-shaft-pos :pos)))
+         (send shaft-world-coords :rotate (send (send *robot* :rarm :end-coords :copy-worldcoords) :rot))  ;; use hand orientation
+         (setq arm-above-shaft-pos (send (send shaft-world-coords :copy-coords) :translate (float-vector 0 0 (+ wrenchLength 20))))
 
-         (if (turn-wrench-test shaft-world-coords turn-radius)
-             (format t "turn wrench possible.~%")
-           (progn 
-             (format t "cannot solve ik for turning-wrench~%")
-             (return-from align-wrench-with-shaft nil)
-             )
-           )
-
-         (matchsimwithrobot)
-;         (send *robot* arm :inverse-kinematics arm-above-shaft-pos)
-         (send *robot* :inverse-kinematics
-               (list (send arm-above-shaft-pos :copy-worldcoords)
-                     (send (send *robot* :larm :end-coords) :copy-worldcoords))
-               :link-list (list (send *robot* :link-list (send *robot* :rarm :end-coords :parent))
-                                (send *robot* :link-list (send *robot* :larm :end-coords :parent)))
-               :move-target (list (send *robot* :rarm :end-coords)
-                                  (send *robot* :larm :end-coords))
-               :rotation-axis (list t t)
-               )
-
+         (send *robot* arm :inverse-kinematics arm-above-shaft-pos)
 
 
          (if (boundp `*irtviewer*)
@@ -820,19 +946,19 @@
   (setq start-gripper-pos (get-gripper-pos))
 
   ;; turn right 
-  (gripper-servo-pos (+ start-gripper-pos 10) 1)
+  (gripper-servo-pos (- start-gripper-pos 10) 200)
   (unix::sleep 1)
-  (format t "gripper err ~a~%" (get-gripper-err))
+  (format t "gripper err moving right ~a~%" (get-gripper-err))
   (setq detected-force-right (> (abs (get-gripper-err)) gripper-err-thres))
 
   ;; turn left 
-  (gripper-servo-pos (- start-gripper-pos 10) 1)
+  (gripper-servo-pos (+ start-gripper-pos 10) 200)
   (unix::sleep 1)
-  (format t "gripper err ~a~%" (get-gripper-err))
+  (format t "gripper err moving left ~a~%" (get-gripper-err))
   (setq detected-force-left (> (abs (get-gripper-err)) gripper-err-thres))
 
   ;; turn back to start pos
-  (gripper-servo-pos start-gripper-pos 1)
+  (gripper-servo-pos start-gripper-pos 200)
   (unix::sleep 1)
 
   (if (and detected-force-right detected-force-left)
@@ -841,7 +967,19 @@
       (return-from confirm-shaft-center-found 1))
   (if (and detected-force-left (not detected-force-right))
       (return-from confirm-shaft-center-found -1))
+  (return-from confirm-shaft-center-found 1)
   )
+
+(defun get-gripper-pos ()
+    (elt (send *ri* :actual-vector) 5)
+    )
+
+(defun get-gripper-err ()
+    (-
+     (elt (send *robot* :angle-vector) 5)
+     (elt (send *ri* :actual-vector) 5)
+     )
+    )
 
 (defun move-arm-to-start-pose2 ()
     (resetpose)
@@ -854,7 +992,42 @@
     (moverobot)
     (send *ri* :wait-interpolation)
     )
-    
+
+;; IK for moving arm smoothly in cartesian space.
+;; This assumes that shoulder-y is at -90 deg, and use the lifter to
+;; move in the y direction, while using the arm to move only in the
+;; z-x directions, since the arm does not have enough DOFs to move smoothly
+(defun slide-to-fit-move-arm (delta)
+    (format t "delta ~a~%" delta)
+    (if (and (eq (elt delta 0) 0.0) (eq (elt delta 1) 0.0)) ;; if moving in approach direction
+            (progn ;; moving in approach direction, can move faster
+                (format t "moving in approach direction, can move faster~%")
+                (format t "~%")
+                (format t "~%")
+                (setq slide-to-fit-moverobot-time 300)
+                (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
+                (send target-pose :translate delta)
+                (send *robot* arm :inverse-kinematics target-pose)
+                (moverobot slide-to-fit-moverobot-time)
+                ;; (send *ri* :wait-interpolation)
+                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 50000))
+                )
+        
+            (progn
+                (format t "moving in tangent direction, can move slower~%")
+                (format t "~%")
+                (format t "~%")
+                (setq slide-to-fit-moverobot-time 300)
+                (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
+                (send target-pose :translate delta)
+                (send *robot* arm :inverse-kinematics target-pose)
+                (moverobot slide-to-fit-moverobot-time)
+                ;; (send *ri* :wait-interpolation)
+                (unix:usleep (+ (* slide-to-fit-moverobot-time 1000) 500000))
+                )
+            )
+        )
+        
 ;;(setup)
 
 (setq arm :rarm)

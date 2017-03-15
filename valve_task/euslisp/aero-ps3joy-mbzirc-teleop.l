@@ -24,11 +24,20 @@
 (defun callbackJoy (joyState)
     ;; (print "in callbackJoy")
 
+    ;; make sure only use newer msg, and not old msg with using UDP communication
+    (if (not (ros::time< prevMsgTime (send joyState :header :stamp)))
+            (setq joyState (instance sensor_msgs::Joy :init))
+        )
+
     ;; euslisp is calling this mulitple time in different threads before the previous callbacks returns.
     ;; Need to prevent problem with this bug!!
     (if executing_joycb
             (return-from callbackJoy)
         )
+    (if (equal (length (send joyState :axes)) 0) ;; when joy node dies 
+            (return-from callbackJoy)
+        )
+
     (setq executing_joycb t)
     (setq isMovingBase nil)
 
@@ -119,7 +128,8 @@
     
     (setq mode nil)
     (cond
-     ((and (< L1 trigger_thre) (> L2 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
+     ;; ((and (< L1 trigger_thre) (> L2 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
+     ((and (< L1 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre)) ;; L2 can be off, or on for fine mode
       (setq mode "base_mode"))
      ((and (< L2 trigger_thre) (> L1 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
       (setq mode "torso_mode"))
@@ -170,10 +180,41 @@
                       (unix:usleep 200000)
                       )
               )
-          (if (or (> (abs LStick_UD) stick_thre) (> (abs RStick_LR) stick_thre) (> (abs RStick_UD) stick_thre))
+          (if (or (> (abs RStick_UD) stick_thre) (> (abs LStick_LR) stick_thre) (> (abs LStick_UD) stick_thre))
                   (progn
-                      (setq moveArmGain 25)
-                      (move-arm (scale moveArmGain (float-vector RStick_UD LStick_LR LStick_UD)))
+                      (setq moveArmGainX 25)
+                      (setq moveArmGainY 15)
+                      (setq moveArmGainZ 25)
+
+
+                      (if (> (abs RStick_UD) stick_thre)
+                              (progn
+                                  (if (> RStick_UD 0)
+                                          (setq RStick_UD_adjusted (- RStick_UD stick_thre))
+                                  (setq RStick_UD_adjusted (+ RStick_UD stick_thre)))
+                                  )
+                          (setq RStick_UD_adjusted 0)
+                          )
+                      (if (> (abs LStick_LR) stick_thre)
+                              (progn
+                                  (if (> LStick_LR 0)
+                                          (setq LStick_LR_adjusted (- LStick_LR stick_thre))
+                                  (setq LStick_LR_adjusted (+ LStick_LR stick_thre)))
+                                  )
+                          (setq LStick_LR_adjusted 0)
+                          )
+                      (if (> (abs LStick_UD) stick_thre)
+                              (progn
+                                  (if (> LStick_UD 0)
+                                          (setq LStick_UD_adjusted (- LStick_UD stick_thre))
+                                  (setq LStick_UD_adjusted (+ LStick_UD stick_thre)))
+                                  )
+                          (setq LStick_UD_adjusted 0)
+                          )  
+                      
+                      (move-arm (float-vector (* RStick_UD_adjusted moveArmGainX)
+                                              (* LStick_LR_adjusted moveArmGainY)
+                                              (* LStick_UD_adjusted moveArmGainZ)))
                       )
               )
           (if (< DPad_U button_thre)
@@ -201,7 +242,7 @@
           (if (< DPad_R button_thre)
                   (progn
                       ;; (align-wrench-with-shaft)
-                      (turnwrenchtorso2)
+                      (turn-shaft-disengage-move-arm)
                       (unix:sleep 4)
                       (matchsimwithrobot)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
@@ -211,19 +252,21 @@
               )
           (if (< DPad_D button_thre)
                   (progn
-                      ;; (if (boundp `arm-delta)
-                      ;; (setq arm-delta (fit-wrench-to-shaft arm-delta))
-                      ;; (setq arm-delta (fit-wrench-to-shaft))
-                      ;; )
-                      (format t "no function binded")
+                      (if (boundp `arm-delta)
+                              (setq arm-delta (fit-wrench-to-shaft arm-delta))
+                          (setq arm-delta (fit-wrench-to-shaft))
+                          )
+                      ;; (format t "no function binded")
                       )
               )
           (if (and (equal prev_Select 1) (equal Select 0))
                   (progn
+                      (send *robot* :rarm-shoulder-y :joint-angle -90)
                       (send *robot* :rarm-shoulder-p :joint-angle 0)
                       (send *robot* :rarm-elbow-p :joint-angle 0)
                       (send *robot* :rarm-wrist-p :joint-angle 0)
                       (send *robot* :rarm-wrist-y :joint-angle 0)
+                      (send *robot* :rarm-dgripper :joint-angle 90)
                       (moverobot)
                       )
               )     
@@ -234,18 +277,31 @@
           ;; (print "dual_arm_mode")
           (if (< DPad_L button_thre)
                   (progn
-                      (print "reset pose")
+                      (print "reset task2 pose")
                       (resettask2pose)
+                      (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
+                      (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
+                      )
+              )
+          (if (< DPad_U button_thre)
+                  (progn
+                      (print "reset task2 pose arm only")
+                      (resettask2poseArmOnly)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
                       (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
                       )
               )
           (if (< DPad_R button_thre)
                   (progn
-                      (print "reset pose")
+                      (print "task 2 recog pose")
                       (Task2RecogPose)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
                       (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
+                      )
+              )
+          (if (< DPad_D button_thre)
+                  (progn
+                      (turn-shaft-full-turn)
                       )
               )
           (if (and (< prev_Circle button_thre) (> Circle button_thre))
@@ -278,9 +334,18 @@
       (progn
           (if (or (> (abs LStick_UD) stick_thre) (> (abs LStick_LR) stick_thre) (> (abs RStick_LR) stick_thre))
                   (progn
-                      (setq moveBaseGainX 200)
-                      (setq moveBaseGainY 20)
-                      (setq moveBaseGainTheta 200)
+                      (if (< L2 trigger_thre) ;; if L2 pressed, fine mode 
+                              (progn
+                                  (setq moveBaseGainX 200)
+                                  (setq moveBaseGainY 20)
+                                  (setq moveBaseGainTheta 200)
+                                  )
+                          (progn ;; regular speed
+                              (setq moveBaseGainX 10)
+                              (setq moveBaseGainY 5)
+                              (setq moveBaseGainTheta 10)
+                              )
+                          )    
                       (if (> (abs LStick_UD) stick_thre)
                               (progn
                                   (if (> LStick_UD 0)
@@ -435,6 +500,7 @@
             )
         )
     (setq executing_joycb nil)
+    (setq prevMsgTime (send joyState :header :stamp))
     )
 
 (defun move-base (vel_x vel_y vel_theta time_msec)
@@ -465,7 +531,7 @@
     (setq move-arm-thre 0.02)
 
     (setq in_progress_target_delta (send (send *robot* :rarm :end-coords) :inverse-transform-vector in_progress_target_arm_pos)) ;; convert to local coords
-    (setq target-pos-diff (v- in_progress_target_delta  delta))
+    (setq target-pos-diff (v- in_progress_target_delta delta))
     (format t "in_progress_target_delta ~a~%" in_progress_target_delta)
     (setq i 0) (send *robot* :rarm :end-coords) 
     (while (< i 3)
@@ -657,8 +723,10 @@
 
 (setq executing_joycb nil)
 (setq isMovedBaseZeroOnce t)
+(setq prevMsgTime (instance ros::time :init))
+
 (ros::subscribe "/joy"
-                sensor_msgs::Joy
+                sensor_msgs::joy
                 #'callbackJoy 1)
 
 (setq *tfl* (instance ros::transform-listener :init))

@@ -14,6 +14,9 @@ sensor_msgs/CompressedImage handeye__image_color__compressed
 dynamic_reconfigure/ConfigDescription handeye__image_color__compressed__parameter_descriptions
 dynamic_reconfigure/Config handeye__image_color__compressed__parameter_updates
 
+#hokuyo scan
+sensor_msgs/LaserScan scan
+
 # wrench_detector image
 # sensor_msgs/CompressedImage wrench_detector__image__compressed
 # dynamic_reconfigure/ConfigDescription wrench_detector__image__compressed__parameter_descriptions
