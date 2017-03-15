@@ -127,7 +127,8 @@
     
     (setq mode nil)
     (cond
-     ((and (< L1 trigger_thre) (> L2 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
+     ;; ((and (< L1 trigger_thre) (> L2 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
+     ((and (< L1 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre)) ;; L2 can be off, or on for fine mode
       (setq mode "base_mode"))
      ((and (< L2 trigger_thre) (> L1 trigger_thre) (> R1 trigger_thre) (> R2 trigger_thre))
       (setq mode "torso_mode"))
@@ -291,9 +292,18 @@
       (progn
           (if (or (> (abs LStick_UD) stick_thre) (> (abs LStick_LR) stick_thre) (> (abs RStick_LR) stick_thre))
                   (progn
-                      (setq moveBaseGainX 200)
-                      (setq moveBaseGainY 20)
-                      (setq moveBaseGainTheta 200)
+                      (if (< L2 trigger_thre) ;; if L2 pressed, fine mode 
+                              (progn
+                                  (setq moveBaseGainX 200)
+                                  (setq moveBaseGainY 20)
+                                  (setq moveBaseGainTheta 200)
+                                  )
+                          (progn ;; regular speed
+                              (setq moveBaseGainX 10)
+                              (setq moveBaseGainY 5)
+                              (setq moveBaseGainTheta 10)
+                              )
+                          )    
                       (if (> (abs LStick_UD) stick_thre)
                               (progn
                                   (if (> LStick_UD 0)
