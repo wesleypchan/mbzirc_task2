@@ -75,6 +75,37 @@
     (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
     )
 
+(defun turn-shaft-disengage-move-arm ()
+
+    (format t "enter turn-shaft-full-turn~%")
+    (matchsimwithrobot)
+    (setq turn-shaft-start-arm-pose (send *robot* arm :end-coords :copy-worldcoords))
+    (format t "1 turn-shaft-start-arm-pose ~a~%" turn-shaft-start-arm-pose)
+    (setq start-pose-delta 0)
+
+    (turnWrenchTorso3)
+
+
+    (setq wrench-normal-vector ;; in the direction towards the shaft, in lifter frame
+          (float-vector
+           (sin (deg2rad (get-gripper-pos)))
+           0
+           (- (cos (deg2rad (get-gripper-pos)))))
+          )
+    (format t "detaching wrench")
+    (setq detach-wrench-move-waist-distance 40)
+    (movewaist (scale detach-wrench-move-waist-distance (v- wrench-normal-vector)))
+    (gripper-servo-enable)
+    (gripper-servo-pos 0)
+    (format t "move arm back to slightly above turn-shaft-start-arm-pose")
+    (format t "2 turn-shaft-start-arm-pose ~a~%" turn-shaft-start-arm-pose)
+    (send *robot* arm :inverse-kinematics (send turn-shaft-start-arm-pose :translate #f(0 0 50)))
+    (moverobot 4000)
+    (format t "move lifter back to start position")
+    (movewaist #f(150 0 -50) :world 4000) 
+    (unix:sleep 4)
+    )
+
 
 ;; Entry point to the entire state machine!
 (defun fit-wrench-to-shaft (&optional prev-arm-pose-delta)
