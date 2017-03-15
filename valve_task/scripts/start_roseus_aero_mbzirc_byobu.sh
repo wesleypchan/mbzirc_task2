@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 PROGNAME=$(basename $0)
+WRENCH_TARGET=4
 
 usage() {
   echo "Usage: $PROGNAME [option]"
   echo
   echo "options:"
   echo "  -h, --help"
+  echo "  -w, --wrench          option for set wrench target. set 3 for 19mm, 4 for 22mm"
   echo
   exit 1
 }
@@ -15,6 +17,13 @@ do
   case "$OPT" in
     '-h'|'--help' )
       usage
+      exit 1
+      ;;
+    '-w'|'--wrench' )
+      if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then                                                    
+        echo "$PROGNAME : -w and --wrench option requires an argument!"                           
+      fi
+      WRENCH_TARGET="$2"
       exit 1
       ;;
     '--'|'-' )
@@ -33,6 +42,7 @@ byobu-tmux start-server
 byobu-tmux new-session -s aero-mbzirc -d -n roscore \; new-window -n bringup \; new-window -n utils \; new-window -n roseus
 sleep 1
 
+# aero core system ======
 byobu-tmux send-keys -t roscore "roscore" C-m
 byobu-tmux send-keys -t bringup "/opt/ros/`rosversion -d`/bin/roslaunch aero_startup aero_bringup.launch" C-m
 sleep 7
