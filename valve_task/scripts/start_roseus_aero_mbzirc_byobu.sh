@@ -50,23 +50,5 @@ byobu-tmux send-keys -t utils "/opt/ros/`rosversion -d`/bin/roslaunch aero_utils
 
 byobu-tmux send-keys -t roseus "rosnode kill /aero_servo_controller_service" C-m
 byobu-tmux send-keys -t roseus "rlwrap roseus `rospack find valve_task`/euslisp/start-roseus-aero-mbzirc.l" C-m
-# ====== aero core system
-
-# roseus nodes ======
-byobu-tmux new-window -n picking
-byobu-tmux send-keys -t picking "rlwrap roseus `rospack find mbzirc_task2_control`/euslisp/catch-wrench.l" C-m
-byobu-tmux send-keys -t picking "full-pick $WRENCH_TARGET :auto t :ready? t" # for rehearsal
-
-byobu-tmux new-window -n aligning
-byobu-tmux send-keys -t aligning "rlwrap roseus `rospack find mbzirc_task2_control`/euslisp/align-with-panel.l" C-m
-byobu-tmux send-keys -t aligning "align-with-panel" # for rehearsal
-byobu-tmux new-window -n approach
-byobu-tmux send-keys -t approach "rlwrap roseus `rospack find mbzirc_task2_control`/euslisp/approach-panel.l" C-m
-byobu-tmux send-keys -t approach "long-approach" # for rehearsal
-byobu-tmux new-window -n init-pos
-byobu-tmux send-keys -t init-pos "rlwrap roseus `rospack find mbzirc_task2_control`/euslisp/init-position.l" C-m
-byobu-tmux send-keys -t init-pos "go-to-init-position :init_x 40000 :init_y 20000" #for rehearsal
-
-# ====== roseus nodes
 
 byobu-tmux attach-session -t aero-mbzirc
