@@ -500,7 +500,6 @@
             )
         )
     (setq executing_joycb nil)
-    (setq prev_seq curr_seq)
     (setq prevMsgTime (send joyState :header :stamp))
     )
 
