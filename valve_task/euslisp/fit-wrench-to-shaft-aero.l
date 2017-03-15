@@ -214,6 +214,31 @@
                          )
                      )
                    (inc approach-index)
+
+                   ;; check absolute height of hand
+                   (setq shaftHeight 980)
+                   (setq fittingPoseLifterHeight 1110)
+                   (setq armEndHeight (elt (send *robot* :rarm :end-coords :worldpos) 2))
+                   
+                   (setq wrenchHeadHeight
+                         (- (+ fittingPoseLifterHeight armEndHeight)
+                            wrenchLength
+                            20 ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length
+                            )
+                         )
+                   (if (< wrenchHeadHeight
+                          (- shaftHeight
+                             60) ;; error tollerance in calculating wrenchheadheight
+                          )
+                           (progn
+                               (format t "----- wrench head height too low. Must have missed shaft completely -----~%")
+                               (format t "~%")
+                               (format t "~%")
+                               (return-from scan-for-contact-state)
+                               )
+                       )
+                   
+                   
                    )
            (inc tangent-index)
            )
@@ -455,13 +480,26 @@
                     ;; check absolute height of hand
                     (setq shaftHeight 980)
                     (setq fittingPoseLifterHeight 1110)
-                    (setq armEndHeight (* (elt (send *robot* :rarm :end-coords :worldpos) 2) 10))
+                    (setq armEndHeight (elt (send *robot* :rarm :end-coords :worldpos) 2))
 
                     (setq wrenchHeadHeight
                           (- (+ fittingPoseLifterHeight armEndHeight)
                              wrenchLength
-                             20)) ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length 
-
+                             20 ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length
+                             )
+                          )
+                    (if (< wrenchHeadHeight
+                           (- shaftHeight
+                              60) ;; error tollerance in calculating wrenchheadheight
+                           )
+                        (progn
+                          (format t "----- wrench head height too low. Must have missed shaft completely -----~%")
+                          (format t "~%")
+                          (format t "~%")
+                          (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
+                          )
+                        )
+                    
                     ;; (prompt "hit enter to mov arm")
                     (slide-to-fit-move-arm delta)
                     ;; (send *robot* arm :inverse-kinematics target-pose)

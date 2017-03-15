@@ -37,6 +37,10 @@
     (if executing_joycb
             (return-from callbackJoy)
         )
+    (if (equal (length (send joyState :axes)) 0) ;; when joy node dies 
+            (return-from callbackJoy)
+        )
+
     (setq executing_joycb t)
     (setq isMovingBase nil)
 
@@ -179,10 +183,41 @@
                       (unix:usleep 200000)
                       )
               )
-          (if (or (> (abs LStick_UD) stick_thre) (> (abs RStick_LR) stick_thre) (> (abs RStick_UD) stick_thre))
+          (if (or (> (abs RStick_UD) stick_thre) (> (abs LStick_LR) stick_thre) (> (abs LStick_UD) stick_thre))
                   (progn
-                      (setq moveArmGain 25)
-                      (move-arm (scale moveArmGain (float-vector RStick_UD LStick_LR LStick_UD)))
+                      (setq moveArmGainX 25)
+                      (setq moveArmGainY 15)
+                      (setq moveArmGainZ 25)
+
+
+                      (if (> (abs RStick_UD) stick_thre)
+                              (progn
+                                  (if (> RStick_UD 0)
+                                          (setq RStick_UD_adjusted (- RStick_UD stick_thre))
+                                  (setq RStick_UD_adjusted (+ RStick_UD stick_thre)))
+                                  )
+                          (setq RStick_UD_adjusted 0)
+                          )
+                      (if (> (abs LStick_LR) stick_thre)
+                              (progn
+                                  (if (> LStick_LR 0)
+                                          (setq LStick_LR_adjusted (- LStick_LR stick_thre))
+                                  (setq LStick_LR_adjusted (+ LStick_LR stick_thre)))
+                                  )
+                          (setq LStick_LR_adjusted 0)
+                          )
+                      (if (> (abs LStick_UD) stick_thre)
+                              (progn
+                                  (if (> LStick_UD 0)
+                                          (setq LStick_UD_adjusted (- LStick_UD stick_thre))
+                                  (setq LStick_UD_adjusted (+ LStick_UD stick_thre)))
+                                  )
+                          (setq LStick_UD_adjusted 0)
+                          )  
+                      
+                      (move-arm (float-vector (* RStick_UD_adjusted moveArmGainX)
+                                              (* LStick_LR_adjusted moveArmGainY)
+                                              (* LStick_UD_adjusted moveArmGainZ)))
                       )
               )
           (if (< DPad_U button_thre)
@@ -243,15 +278,23 @@
           ;; (print "dual_arm_mode")
           (if (< DPad_L button_thre)
                   (progn
-                      (print "reset pose")
+                      (print "reset task2 pose")
                       (resettask2pose)
+                      (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
+                      (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
+                      )
+              )
+          (if (< DPad_U button_thre)
+                  (progn
+                      (print "reset task2 pose arm only")
+                      (resettask2poseArmOnly)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
                       (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
                       )
               )
           (if (< DPad_R button_thre)
                   (progn
-                      (print "reset pose")
+                      (print "task 2 recog pose")
                       (Task2RecogPose)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
                       (setq in_progress_target_shoulder_angle (send *robot* :rarm :shoulder-y :joint-angle))
