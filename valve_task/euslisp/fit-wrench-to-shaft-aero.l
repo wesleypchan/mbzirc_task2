@@ -24,6 +24,8 @@
 
 (setq debug t)
 
+(setq wrenchFittingAlignAngle 0)
+
 (defun prompt (msg)
     (if debug
             (progn
@@ -77,8 +79,9 @@
 ;; Entry point to the entire state machine!
 (defun fit-wrench-to-shaft (&optional prev-arm-pose-delta)
     (format t "Entered fit-wrench-to-shaft.~%")
+
     (gripper-servo-enable)
-    (gripper-servo-pos 0 1)
+    (gripper-servo-pos wrenchFittingAlignAngle 1)
 
     (setq approach-vector #f(0 0 -1)) ;; local frame wrt the hand
     (setq tangent-vector #f(0 1 0)) ;; local frame wrt the hand
@@ -120,7 +123,7 @@
         (moverobot 1000)
         (send *ri* :wait-interpolation)
         (unix:sleep 2) ;; wait for force sensor values to settle
-        (if (< detect-shaft-center-result 0)
+        (if (< detect-shaft-center-result 0) ;; negative means detected force while moving left 
                 (setq current-delta (* 3 (exp (exp (- (abs detect-shaft-center-result))))))
             (setq current-delta (- (* 3 (exp (exp (- (abs detect-shaft-center-result)))))))
             )
@@ -391,7 +394,8 @@
                     (format t "~%")
                     
                     ;; check if hand moved too far in approach direction
-                    (if (> (abs (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector))
+
+                    (if (> (abs (v. (v- (send start-pose :pos) (send target-pose :pos)) approach-vector)) ;; check relative to start position 
                            (* 2 shaft-width))
                         (progn
                           (format t "----- moved too far. Must have missed shaft completely -----~%")
@@ -400,6 +404,7 @@
                           (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                           )
                       )
+                    
 
                     ;; (prompt "hit enter to move arm")
                     (slide-to-fit-move-arm delta)
@@ -447,6 +452,15 @@
                           (return-from slide-to-fit-state (slide-to-fit-state-return-helper))
                           )
                       )
+                    ;; check absolute height of hand
+                    (setq shaftHeight 980)
+                    (setq fittingPoseLifterHeight 1110)
+                    (setq armEndHeight (* (elt (send *robot* :rarm :end-coords :worldpos) 2) 10))
+
+                    (setq wrenchHeadHeight
+                          (- (+ fittingPoseLifterHeight armEndHeight)
+                             wrenchLength
+                             20)) ;; wrenchLength is measured from ring end center to open end center, so add approximately 2 cm to get full length 
 
                     ;; (prompt "hit enter to mov arm")
                     (slide-to-fit-move-arm delta)
@@ -863,15 +877,15 @@
   (setq start-gripper-pos (get-gripper-pos))
 
   ;; turn right 
-  (gripper-servo-pos (+ start-gripper-pos 10) 200)
+  (gripper-servo-pos (- start-gripper-pos 10) 200)
   (unix::sleep 1)
-  (format t "gripper err ~a~%" (get-gripper-err))
+  (format t "gripper err moving right ~a~%" (get-gripper-err))
   (setq detected-force-right (> (abs (get-gripper-err)) gripper-err-thres))
 
   ;; turn left 
-  (gripper-servo-pos (- start-gripper-pos 10) 200)
+  (gripper-servo-pos (+ start-gripper-pos 10) 200)
   (unix::sleep 1)
-  (format t "gripper err ~a~%" (get-gripper-err))
+  (format t "gripper err moving left ~a~%" (get-gripper-err))
   (setq detected-force-left (> (abs (get-gripper-err)) gripper-err-thres))
 
   ;; turn back to start pos

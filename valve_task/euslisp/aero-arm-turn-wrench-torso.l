@@ -3,7 +3,7 @@
 ;; make aero arm turn wrench using lower body by drawing circle with waist
 
 
-(setq gripper-force-limit 45)
+(setq gripper-force-limit 60)
 (setq wrench-normal-force-lower-thres 5)
 (setq wrench-normal-force-upper-thres 15)
 (setq wrench-normal-force-servo-gain 3.0)
