@@ -264,6 +264,7 @@
               )
           (if (and (equal prev_Select 1) (equal Select 0))
                   (progn
+                      (send *robot* :rarm-shoulder-y :joint-angle -90)
                       (send *robot* :rarm-shoulder-p :joint-angle 0)
                       (send *robot* :rarm-elbow-p :joint-angle 0)
                       (send *robot* :rarm-wrist-p :joint-angle 0)
