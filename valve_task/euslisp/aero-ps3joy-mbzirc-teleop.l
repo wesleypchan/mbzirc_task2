@@ -24,13 +24,12 @@
 (defun callbackJoy (joyState)
     ;; (print "in callbackJoy")
 
-    ;; If connection is lost ros keeps publishing the previous msg.
-    ;; Need to check for this condition to prevent, for example,
-    ;; the robot keeps running and won't stop.
-    (setq curr_seq (send joyState :header :seq))
-    (if (equal curr_seq prev_seq)
-            (setq joyState (instance sensor_msgs::Joy :init)))
-
+    ;; make sure only use newer msg, and not old msg with using UDP communication
+    (format t "prevMsgTime ~a~%" prevMsgTime)
+    (format t "(send joyState :header :stamp) ~a~%"  (send joyState :header :stamp))
+    (if (not (ros::time< prevMsgTime (send joyState :header :stamp)))
+            (setq joyState (instance sensor_msgs::Joy :init))
+        )
 
     ;; euslisp is calling this mulitple time in different threads before the previous callbacks returns.
     ;; Need to prevent problem with this bug!!
@@ -245,7 +244,7 @@
           (if (< DPad_R button_thre)
                   (progn
                       ;; (align-wrench-with-shaft)
-                      (turnwrenchtorso2)
+                      (turn-shaft-disengage-move-arm)
                       (unix:sleep 4)
                       (matchsimwithrobot)
                       (setq in_progress_target_rarm_pos (send (send *robot* :rarm :end-coords :copy-worldcoords) :pos))
@@ -269,6 +268,7 @@
                       (send *robot* :rarm-elbow-p :joint-angle 0)
                       (send *robot* :rarm-wrist-p :joint-angle 0)
                       (send *robot* :rarm-wrist-y :joint-angle 0)
+                      (send *robot* :rarm-dgripper :joint-angle 90)
                       (moverobot)
                       )
               )     
@@ -503,6 +503,7 @@
         )
     (setq executing_joycb nil)
     (setq prev_seq curr_seq)
+    (setq prevMsgTime (send joyState :header :stamp))
     )
 
 (defun move-base (vel_x vel_y vel_theta time_msec)
@@ -725,10 +726,10 @@
 
 (setq executing_joycb nil)
 (setq isMovedBaseZeroOnce t)
-(setq prev_seq -1)
+(setq prevMsgTime (instance ros::time :init))
 
 (ros::subscribe "/joy"
-                sensor_msgs::Joy
+                sensor_msgs::joy
                 #'callbackJoy 1)
 
 (setq *tfl* (instance ros::transform-listener :init))
