@@ -25,8 +25,6 @@
     ;; (print "in callbackJoy")
 
     ;; make sure only use newer msg, and not old msg with using UDP communication
-    (format t "prevMsgTime ~a~%" prevMsgTime)
-    (format t "(send joyState :header :stamp) ~a~%"  (send joyState :header :stamp))
     (if (not (ros::time< prevMsgTime (send joyState :header :stamp)))
             (setq joyState (instance sensor_msgs::Joy :init))
         )
