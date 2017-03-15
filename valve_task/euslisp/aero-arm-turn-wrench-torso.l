@@ -2,8 +2,7 @@
 (load "package://aero_dgripper/euslisp/aero-dgripper-controller.l")
 ;; make aero arm turn wrench using lower body by drawing circle with waist
 
-
-(setq gripper-force-limit 60)
+(setq force-limit 70)
 (setq wrench-normal-force-lower-thres 5)
 (setq wrench-normal-force-upper-thres 15)
 (setq wrench-normal-force-servo-gain 3.0)
@@ -136,7 +135,6 @@
 
         (setq force-vector (get-offset-force-vector))
         (format t "force: ~a magnitude: ~a~%" force-vector (norm force-vector))
-        (setq force-limit 50)
         (if (> (norm force-vector) force-limit)
                 (progn
                     (format t "force magnitude ~a exceeded limit ~a~%" (norm force-vector) force-limit)
@@ -237,7 +235,6 @@
 
         (setq force-vector (get-offset-force-vector))
         (format t "force: ~a magnitude: ~a~%" force-vector (norm force-vector))
-        (setq force-limit 50)
         (if (> (norm force-vector) force-limit)
                 (progn
                     (format t "force magnitude ~a exceeded limit ~a~%" (norm force-vector) force-limit)
@@ -276,7 +273,7 @@
         (format t "offset-force-vector ~a norm ~a~%" offset-force-vector (norm offset-force-vector))
         (format t "normal ~a tangent ~a reject ~a~%" offset-force-wrench-normal offset-force-wrench-tangent (norm (get-offset-force-wrench-tangent-reject)))
         ;; if the force magnitude is too high, terminate
-        (if (> (norm offset-force-vector) gripper-force-limit)
+        (if (> (norm offset-force-vector) force-limit)
             (progn
               (format t "gripper force excceded limit. Terminating turn-wrench~%")
               (return-from turn-wrench-torso3 nil)
