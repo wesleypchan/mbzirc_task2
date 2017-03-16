@@ -1,4 +1,5 @@
 (load "package://aero_utils/euslisp/aero-arm-single-wrist-utils.l")
+(load "package://mbzirc_task2_control/euslisp/move-base-util.l")
 
 
 (setq isMoveRIBase t)
@@ -76,7 +77,9 @@
 
     ;; if didn't see anything within panelMaxDist increase serach range
     (while (< numPoints 10) ;; needed to prevent divide by zero exception
-        (setq panelMaxDist (+ panelMaxDist 1.0)
+        (setq panelMaxDist (+ panelMaxDist 1.0))
+        (if (> panelMaxDist 10.0)
+                (return-from findPanelLocation nil))
         (while (< index maxIndex)
             (if (< (elt ranges index) panelMaxDist)
                     (progn
@@ -96,7 +99,7 @@
     (setq panelY avgY) ;; global var to be used outside
     
     (format t "estimated panel x : ~f y: ~f~%" panelX panelY)
-    
+    t
     )
 
 (defun callbackScan (msg)
@@ -248,20 +251,29 @@ p    (setq term2 (*
             (setq targetDistFromWall minDistFromWall))
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
     (setq approachVel 50)
-    (move-to-wall-front targetDistFromWall approachVel)
 
     (if (< startPanelY 0) ;; panel to the right
             (progn
-                (send *ri* :go-pos 0 0 (deg2rad -90))
-                (findPanelLocation :right) ;; after calling this panelY and panelX are set according to the detection result
-                (send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-                (send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+                ;;(send *ri* :go-pos 0 0 (deg2rad -90))
+                (move-base 0 (deg2rad -90) :use-ri t)
+                (while (not (findPanelLocation :right)) ;; after calling this panelY and panelX are set according to the detection result
+                    ;; @TODO move....
+                    )
+                ;;(send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+                (move-base-side (+ panelY desiredXdistanceFromPanel) :use-ri t)
+                ;;(send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+                (move-base (+ panelX desiredYdistanceFromPanel) 0 :use-ri t)
                 )
         (progn ;; panel to the left 
-            (send *ri* :go-pos 0 0 (deg2rad 90))
-            (findPanelLocation :left) ;; after calling this panelY and panelX are set according to the detection result
-            (send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-            (send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            ;;(send *ri* :go-pos 0 0 (deg2rad 90))
+            (move-base 0 (deg2rad 90) :use-ri t)
+            (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
+                ;; @TODO: move........
+                )
+            ;;(send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+            (move-base-side (- panelY desiredXdistanceFromPanel) :use-ri t)
+            ;;(send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            (move-base (- panelX desiredYdistanceFromPanel) 0 :use-ri t)
             )
         )
     t
