@@ -39,8 +39,64 @@
                 (setq pointsWithinDistXcount (+ pointsWithinDistXcount 1.0)))
         (setq index (+ index 1))
         )
-    ;; (format t "% points with in distx ~f : ~f~%" distx (/ pointsWithinDistXcount (- maxIndex minIndex)))
+    (format t "% points with in distx ~f : ~f~%" distx (/ pointsWithinDistXcount (- maxIndex minIndex)))
     (/ pointsWithinDistXcount (- maxIndex minIndex)) 
+    )
+
+;; assumes the robot is between the panel and the wall 
+(defun findPanelLocation (leftright)
+    (ros::spin-once)
+    (if (equal leftright :left)
+            (progn
+                (setq minIndex 0)
+                (setq maxIndex (floor (/ (length ranges) 2)))
+                )
+        (progn
+            (setq minIndex (floor (/ (length ranges) 2)))
+            (setq maxIndex (length ranges))
+            )
+        )
+
+    (setq panelMaxDist 5.0) ;; only take scan points that are within this distance to find panle cluster
+
+    (setq sumX 0)
+    (setq sumY 0)
+    (setq index minIndex)
+    (setq numPoints 0)
+
+    (while (< index maxIndex)
+        (if (< (elt ranges index) panelMaxDist)
+                (progn
+                    (setq sumX (+ sumX (getSingleXDist index)))
+                    (setq sumY (+ sumY (getSingleYDist index)))
+                    (setq numPoints (+ numPoints 1)))
+            )
+        (setq index (+ index 1))
+        )    
+
+    ;; if didn't see anything within panelMaxDist increase serach range
+    (while (< numPoints 10) ;; needed to prevent divide by zero exception
+        (setq panelMaxDist (+ panelMaxDist 1.0)
+        (while (< index maxIndex)
+            (if (< (elt ranges index) panelMaxDist)
+                    (progn
+                        (setq sumX (+ sumX (getSingleXDist index)))
+                        (setq sumY (+ sumY (getSingleYDist index)))
+                        (setq numPoints (+ numPoints 1)))
+                )
+            (setq index (+ index 1))
+            )
+        )
+    )
+    
+    (setq avgX (/ sumX numPoints))
+    (setq avgY (/ sumY numPoints))
+
+    (setq panelX avgX) ;; global var to be used outside
+    (setq panelY avgY) ;; global var to be used outside
+    
+    (format t "estimated panel x : ~f y: ~f~%" panelX panelY)
+    
     )
 
 (defun callbackScan (msg)
@@ -81,14 +137,25 @@
     (ros::publish "move_base_simple/velocity" twist_msg)
     )
 
-(defun move-until-wall-within-xdist (xdist xvel)
-    (format t "entered move-until-wall-within-xdist~%")
+;; move forward untill seeing a wall withing xdist meters, moving at speed of xvel
+(defun move-to-wall-front (xdist xvel)
+    (format t "entered move-to-wall-front~%")
+    (setq curr_xvel 0)
     (while (< (isThereObstacleWithinDist xdist) 0.5)
         (ros::spin-once)
         ;; (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
         ;; (format t "moving base")
-        (detect-panel-move-base xvel 0 0 50)
+
+        (detect-panel-move-base curr_xvel 0 0 50)
+        (if (< curr_xvel xvel)
+                (setq curr_xvel (+ curr_xvel 0.005))
+                      )
         )
+    (while (> curr_xvel 0)
+        (setq curr_xvel (- curr_xvel (/ xvel 10))) 
+        (detect-panel-move-base curr_xvel 0 0 50)
+        )
+    (detect-panel-move-base 0 0 0 50)
     ;; (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
     (format t "exiting~%")
     )
@@ -151,7 +218,7 @@
                   (+ (* slope slope) 1)
                   )
                  pointx))
-    (setq term2 (*
+p    (setq term2 (*
                  (slope
                   (+
                    (/
@@ -166,6 +233,39 @@
     (setq error (sqrt (* term1 term1) (* term2 term2)))
     )
 
+
+(defun far-range-approach (startPanalFromWallX startPanelY)
+
+    (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
+    (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
+    
+    (setq targetDistFromWall (+
+                              (- startPanelFromWallX desiredXdistanceFromPanel)
+                              1.0 ;; add a bit of tolerance away from the panel
+                              ))
+    (setq minDistFromWall 3.0)
+    (if (< targetDistFromWall minDistFromWall)
+            (setq targetDistFromWall minDistFromWall))
+    (format t "targetDistFromWall ~f~%" targetDistFromWall)
+    (setq approachVel 50)
+    (move-to-wall-front targetDistFromWall approachVel)
+
+    (if (< startPanelY 0) ;; panel to the right
+            (progn
+                (send *ri* :go-pos 0 0 (deg2rad -90))
+                (findPanelLocation :right) ;; after calling this panelY and panelX are set according to the detection result
+                (send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+                (send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+                )
+        (progn ;; panel to the left 
+            (send *ri* :go-pos 0 0 (deg2rad 90))
+            (findPanelLocation :left) ;; after calling this panelY and panelX are set according to the detection result
+            (send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+            (send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            )
+        )
+    t
+    )
     
 (ros::roseus "laser-panel-detector")
 
