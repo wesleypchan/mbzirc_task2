@@ -90,7 +90,6 @@
             (setq index (+ index 1))
             )
         )
-    )
     
     (setq avgX (/ sumX numPoints))
     (setq avgY (/ sumY numPoints))
