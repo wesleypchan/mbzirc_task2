@@ -236,8 +236,18 @@ p    (setq term2 (*
     (setq error (sqrt (* term1 term1) (* term2 term2)))
     )
 
+(defun search-base-motion (side current-time &key (max-x-motion-time 3) (x-motion-dist 5000) (side-motion-dist 5000))
+  (let (side-target)
+    (if (equal (mod current-time (+ max-x-motion-time 1)) 0)
+        (progn
+          (if (equal side :right)
+              (setq side-target (- side-motion-dist)))
+          (move-base-side side-target :use-ri use-ri))
+      (if (< (mod current-time (* (+ max-x-motion-time 1) 2)) (+ max-x-motion-time 1))
+          (move-base x-motion-dist 0 :use-ri use-ri)
+        (move-base (- x-motion-dist) 0 :use-ri use-ri)))))
 
-(defun far-range-approach (startPanalFromWallX startPanelY)
+(defun far-range-approach (startPanalFromWallX startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
 
     (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
     (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
@@ -251,35 +261,38 @@ p    (setq term2 (*
             (setq targetDistFromWall minDistFromWall))
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
     (setq approachVel 50)
-
-    (if (< startPanelY 0) ;; panel to the right
-            (progn
-                ;;(send *ri* :go-pos 0 0 (deg2rad -90))
-                (move-base 0 (deg2rad -90) :use-ri t)
-                (while (not (findPanelLocation :right)) ;; after calling this panelY and panelX are set according to the detection result
-                    ;; @TODO move....
-                    )
-                ;;(send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-                (move-base-side (+ panelY desiredXdistanceFromPanel) :use-ri t)
-                ;;(send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-                (move-base (+ panelX desiredYdistanceFromPanel) 0 :use-ri t)
-                )
-        (progn ;; panel to the left 
-            ;;(send *ri* :go-pos 0 0 (deg2rad 90))
-            (move-base 0 (deg2rad 90) :use-ri t)
-            (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
-                ;; @TODO: move........
-                )
-            ;;(send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-            (move-base-side (- panelY desiredXdistanceFromPanel) :use-ri t)
-            ;;(send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-            (move-base (- panelX desiredYdistanceFromPanel) 0 :use-ri t)
+    (let (search-motion-count 0)
+      (if (< startPanelY 0) ;; panel to the right
+          (progn
+            ;;(send *ri* :go-pos 0 0 (deg2rad -90))
+            (move-base 0 (deg2rad -90) :use-ri t)
+            (while (not (findPanelLocation :right)) ;; after calling this panelY and panelX are set according to the detection result
+              (incf search-motion-count)
+              (search-base-motion :right search-motion-count)
+              )
+            ;;(send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+            (move-base-side (+ panelY desiredXdistanceFromPanel) :use-ri t)
+            ;;(send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            (move-base (+ panelX desiredYdistanceFromPanel) 0 :use-ri t)
             )
+        (progn ;; panel to the left 
+          ;;(send *ri* :go-pos 0 0 (deg2rad 90))
+          (move-base 0 (deg2rad 90) :use-ri t)
+          (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
+            (incf search-motion-count)
+            (search-base-motion :right search-motion-count)
+            )
+          ;;(send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+          (move-base-side (- panelY desiredXdistanceFromPanel) :use-ri t)
+          ;;(send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+          (move-base (- panelX desiredYdistanceFromPanel) 0 :use-ri t)
+          )
         )
+      )
     t
     )
-    
-(ros::roseus "laser-panel-detector")
+
+;;(ros::roseus "laser-panel-detector")
 
 (ros::advertise "move_base_simple/velocity" geometry_msgs::TwistStamped) 
 (ros::subscribe "/scan"
