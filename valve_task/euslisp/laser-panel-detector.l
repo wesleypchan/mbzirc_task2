@@ -1,7 +1,7 @@
 (load "package://aero_utils/euslisp/aero-arm-single-wrist-utils.l")
 
 
-(setq isMoveRIBase nil)
+(setq isMoveRIBase t)
 (setq cartWidth 0.5) ;; units in m !!!
 
 (defun prompt (msg)
@@ -32,14 +32,14 @@
     (setq index minIndex)
     (setq pointsWithinDistXcount 0.0)
     (while (< index maxIndex)
-        (format t "index ~f : angle ~f : xdist ~f~%" index
-                                                     (rad2deg (+ angle_min (* index angle_increment)))
-                                                     (getSingleXDist index))
+        ;; (format t "index ~f : angle ~f : xdist ~f~%" index
+                                                     ;; (rad2deg (+ angle_min (* index angle_increment)))
+                                                     ;; (getSingleXDist index))
         (if ( < (getSingleXDist index) distX)
                 (setq pointsWithinDistXcount (+ pointsWithinDistXcount 1.0)))
         (setq index (+ index 1))
         )
-    (format t "% points with in distx ~f : ~f~%" distx (/ pointsWithinDistXcount (- maxIndex minIndex)))
+    ;; (format t "% points with in distx ~f : ~f~%" distx (/ pointsWithinDistXcount (- maxIndex minIndex)))
     (/ pointsWithinDistXcount (- maxIndex minIndex)) 
     )
 
@@ -63,7 +63,7 @@
 (defun detect-panel-move-base (vel_x vel_y vel_theta time_msec)
     (if (not isMoveRIBase)
             (progn
-                (format t "isMoveRIBase is nil!!!~%")
+                ;; (format t "isMoveRIBase is nil!!!~%")
                 (return-from detect-panel-move-base nil))
         )
     (setq twist_msg (instance geometry_msgs::TwistStamped :init))
@@ -81,16 +81,15 @@
     (ros::publish "move_base_simple/velocity" twist_msg)
     )
 
-(defun move-until-wall-within-xdist (xdist)
+(defun move-until-wall-within-xdist (xdist xvel)
     (format t "entered move-until-wall-within-xdist~%")
-    (setq isThereObstacleWithinDistResult (isThereObstacleWithinDist xdist))
-    (while (< isThereObstacleWithinDistResult 0.5)
+    (while (< (isThereObstacleWithinDist xdist) 0.5)
         (ros::spin-once)
-        (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
-        (format t "moving base")
-        (detect-panel-move-base 5 0 0 50)
+        ;; (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
+        ;; (format t "moving base")
+        (detect-panel-move-base xvel 0 0 50)
         )
-    (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
+    ;; (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
     (format t "exiting~%")
     )
 
@@ -168,8 +167,9 @@
     )
 
     
-(ros::roseus "aero_ps3_joy_mbzirc_teleop")
+(ros::roseus "laser-panel-detector")
 
+(ros::advertise "move_base_simple/velocity" geometry_msgs::TwistStamped) 
 (ros::subscribe "/scan"
                 sensor_msgs::LaserScan
                 #'callbackScan 1)
