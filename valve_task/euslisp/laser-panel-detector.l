@@ -66,32 +66,32 @@
     (setq numPoints 0)
 
     (while (< index maxIndex)
-        (if (< (elt ranges index) panelMaxDist)
-                (progn
-                    (setq sumX (+ sumX (getSingleXDist index)))
-                    (setq sumY (+ sumY (getSingleYDist index)))
-                    (setq numPoints (+ numPoints 1)))
-            )
-        (setq index (+ index 1))
-        )    
+      (if (< (elt ranges index) panelMaxDist)
+          (progn
+            (setq sumX (+ sumX (getSingleXDist index)))
+            (setq sumY (+ sumY (getSingleYDist index)))
+            (setq numPoints (+ numPoints 1)))
+        )
+      (setq index (+ index 1))
+      )    
 
     ;; if didn't see anything within panelMaxDist increase serach range
     (while (< numPoints 10) ;; needed to prevent divide by zero exception
-        (setq panelMaxDist (+ panelMaxDist 1.0))
-        (if (> panelMaxDist 10.0)
-                (return-from findPanelLocation nil))
-        (while (< index maxIndex)
-            (if (< (elt ranges index) panelMaxDist)
-                    (progn
-                        (setq sumX (+ sumX (getSingleXDist index)))
-                        (setq sumY (+ sumY (getSingleYDist index)))
-                        (setq numPoints (+ numPoints 1)))
-                )
-            (setq index (+ index 1))
-            )
+      (setq panelMaxDist (+ panelMaxDist 1.0))
+      (if (> panelMaxDist 10.0)
+          (return-from findPanelLocation nil))
+      (while (< index maxIndex)
+        (if (< (elt ranges index) panelMaxDist)
+            (progn
+              (setq sumX (+ sumX (getSingleXDist index)))
+              (setq sumY (+ sumY (getSingleYDist index)))
+              (setq numPoints (+ numPoints 1)))
+          )
+        (setq index (+ index 1))
         )
-    )
-    
+      )
+
+
     (setq avgX (/ sumX numPoints))
     (setq avgY (/ sumY numPoints))
 
