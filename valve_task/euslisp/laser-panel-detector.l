@@ -246,7 +246,7 @@ p    (setq term2 (*
           (move-base x-motion-dist 0 :use-ri use-ri)
         (move-base (- x-motion-dist) 0 :use-ri use-ri)))))
 
-(defun far-range-approach (startPanalFromWallX startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
+(defun far-range-approach (startPanelFromWallX startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
 
     (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
     (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
@@ -260,7 +260,9 @@ p    (setq term2 (*
             (setq targetDistFromWall minDistFromWall))
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
     (setq approachVel 50)
-    (let (search-motion-count 0)
+    (move-to-wall-front targetDistFromWall approachVel)
+    
+    (let ((search-motion-count 0))
       (if (< startPanelY 0) ;; panel to the right
           (progn
             ;;(send *ri* :go-pos 0 0 (deg2rad -90))
@@ -269,10 +271,14 @@ p    (setq term2 (*
               (incf search-motion-count)
               (search-base-motion :right search-motion-count)
               )
-            ;;(send *ri* :go-pos 0 (+ panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-            (move-base-side (+ panelY desiredXdistanceFromPanel) :use-ri t)
-            ;;(send *ri* :go-pos (+ panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-            (move-base (+ panelX desiredYdistanceFromPanel) 0 :use-ri t)
+            (setq targetY (* (+ panelY desiredXdistanceFromPanel) 1000))
+            (send *ri* :go-pos 0 targetY 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+            (unix:usleep (ceiling (* targetY 1000)))
+            (setq targetX (* (+ panelX desiredYdistanceFromPanel) 1000))
+            ;; (move-base-side (* (+ panelY desiredXdistanceFromPanel) 1000) :use-ri t)
+            (send *ri* :go-pos targetX 0 0 (floor targetX)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            (unix:usleep (ceiling (* targetX 1000)))
+            ;; (move-base (* (+ panelX desiredYdistanceFromPanel) 1000) 0 :use-ri t)
             )
         (progn ;; panel to the left 
           ;;(send *ri* :go-pos 0 0 (deg2rad 90))
@@ -281,10 +287,14 @@ p    (setq term2 (*
             (incf search-motion-count)
             (search-base-motion :right search-motion-count)
             )
-          ;;(send *ri* :go-pos 0 (- panelY desiredXdistanceFromPanel) 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-          (move-base-side (- panelY desiredXdistanceFromPanel) :use-ri t)
-          ;;(send *ri* :go-pos (- panelX desiredYdistanceFromPanel) 0 0) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-          (move-base (- panelX desiredYdistanceFromPanel) 0 :use-ri t)
+          (setq targetY (* (- panelY desiredXdistanceFromPanel) 1000))
+          (send *ri* :go-pos 0 targetY 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
+          (unix:usleep (ceiling (* targetY 1000)))
+          ;; (move-base-side (* (- panelY desiredXdistanceFromPanel) 1000) :use-ri t)
+          (setq targetX (* (- panelX desiredYdistanceFromPanel) 1000))
+          (send *ri* :go-pos targetX 0 0 (floor targetX)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+          ;; (move-base (* (- panelX desiredYdistanceFromPanel) 1000) 0 :use-ri t)
+          (unix:usleep (ceiling (* targetX 1000)))
           )
         )
       )
@@ -298,7 +308,7 @@ p    (setq term2 (*
                 sensor_msgs::LaserScan
                 #'callbackScan 1)
 
-;; (ros::rate 10)b
+;; (ros::rate 10)
 ;; (while (ros::ok)
     ;; (ros::spin-once)
     ;; (ros::sleep)
