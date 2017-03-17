@@ -246,7 +246,7 @@
           (move-base x-motion-dist 0 :use-ri use-ri)
         (move-base (- x-motion-dist) 0 :use-ri use-ri)))))
 
-(defun far-range-approach (startPanelFromWallX startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
+(defun far-range-approach (targetDistFromWall startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
 
     (setq initalSideMove 0)
     (if (and (>= startPanelY 0)
@@ -275,13 +275,9 @@
         )
     
     
-    (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
-    (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
+    ;; (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
+    ;; (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
     
-    (setq targetDistFromWall (+
-                              (- startPanelFromWallX desiredXdistanceFromPanel)
-                              1.0 ;; add a bit of tolerance away from the panel
-                              ))
     (setq minDistFromWall 3.0)
     (if (< targetDistFromWall minDistFromWall)
             (setq targetDistFromWall minDistFromWall))
