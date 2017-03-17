@@ -102,10 +102,10 @@
     )
 
 (defun callbackScan (msg)
-    (format t "in callbackScan")
-    (format t "size ~d~%" (length (send msg :ranges)))
+    ;; (format t "in callbackScan")
+    ;; (format t "size ~d~%" (length (send msg :ranges)))
 
-    (format t "range [0] ~f~%" (elt (send msg :ranges) 0))
+    ;; (format t "range [0] ~f~%" (elt (send msg :ranges) 0))
 
     
     (setq angle_min (send msg :angle_min))
@@ -113,7 +113,7 @@
     (setq angle_increment (send msg :angle_increment))
     (setq ranges (send msg :ranges))
  
-    (format t "x front  ~f~%" (getsinglexdist 360))
+    ;; (format t "x front  ~f~%" (getsinglexdist 360))
     (isthereobstacleWithinDist 2.0)
       
     )
@@ -259,7 +259,7 @@
     (if (< targetDistFromWall minDistFromWall)
             (setq targetDistFromWall minDistFromWall))
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
-    (setq approachVel 50)
+    (setq approachVel 25)
     (move-to-wall-front targetDistFromWall approachVel)
     
     (let ((search-motion-count 0))
