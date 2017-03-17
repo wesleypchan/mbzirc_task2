@@ -58,22 +58,6 @@
           output="screen"
           args="raw in:=/handeye/image_color$(arg throttle) compressed out:=/handeye/image_color$(arg throttle)" respawn="true"/>
   </group>
-  <!-- <group ns="image_clipper_panel" if="$(arg USE_LARGEDATA)"> -->
-  <!--   <node name="republish" type="republish" pkg="image_transport" -->
-  <!--         output="screen" -->
-  <!--         args="raw in:=/image_clipper_panel/output compressed out:=/image_clipper_panel/output" respawn="true"/> -->
-  <!-- </group> -->
-  <group ns="luminance_homogenizer_panel" if="$(arg USE_LARGEDATA)">
-    <node name="republish" type="republish" pkg="image_transport"
-          output="screen"
-          args="raw in:=/luminance_homogenizer_panel/output compressed out:=/luminance_homogenizer_panel/output" respawn="true"/>
-  </group>
-  <group ns="meanshift_filtering_panel" if="$(arg USE_LARGEDATA)">
-    <node name="republish" type="republish" pkg="image_transport"
-          output="screen"
-          args="raw in:=/meanshift_filtering_panel/output compressed out:=/meanshift_filtering_panel/output" respawn="true"/>
-  </group>
-
   <group ns="wrench_detector">
     <node name="republish" type="republish" pkg="image_transport"
           output="screen"
