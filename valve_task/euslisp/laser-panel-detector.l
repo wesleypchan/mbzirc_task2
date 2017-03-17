@@ -66,30 +66,30 @@
     (setq numPoints 0)
 
     (while (< index maxIndex)
-        (if (< (elt ranges index) panelMaxDist)
-                (progn
-                    (setq sumX (+ sumX (getSingleXDist index)))
-                    (setq sumY (+ sumY (getSingleYDist index)))
-                    (setq numPoints (+ numPoints 1)))
-            )
-        (setq index (+ index 1))
-        )    
+      (if (< (elt ranges index) panelMaxDist)
+          (progn
+            (setq sumX (+ sumX (getSingleXDist index)))
+            (setq sumY (+ sumY (getSingleYDist index)))
+            (setq numPoints (+ numPoints 1)))
+        )
+      (setq index (+ index 1))
+      )    
 
     ;; if didn't see anything within panelMaxDist increase serach range
     (while (< numPoints 10) ;; needed to prevent divide by zero exception
-        (setq panelMaxDist (+ panelMaxDist 1.0))
-        (if (> panelMaxDist 10.0)
-                (return-from findPanelLocation nil))
-        (while (< index maxIndex)
-            (if (< (elt ranges index) panelMaxDist)
-                    (progn
-                        (setq sumX (+ sumX (getSingleXDist index)))
-                        (setq sumY (+ sumY (getSingleYDist index)))
-                        (setq numPoints (+ numPoints 1)))
-                )
-            (setq index (+ index 1))
-            )
+      (setq panelMaxDist (+ panelMaxDist 1.0))
+      (if (> panelMaxDist 10.0)
+          (return-from findPanelLocation nil))
+      (while (< index maxIndex)
+        (if (< (elt ranges index) panelMaxDist)
+            (progn
+              (setq sumX (+ sumX (getSingleXDist index)))
+              (setq sumY (+ sumY (getSingleYDist index)))
+              (setq numPoints (+ numPoints 1)))
+          )
+        (setq index (+ index 1))
         )
+      )
     
     (setq avgX (/ sumX numPoints))
     (setq avgY (/ sumY numPoints))
@@ -271,6 +271,7 @@ p    (setq term2 (*
               (incf search-motion-count)
               (search-base-motion :right search-motion-count)
               )
+
             (setq targetY (* (+ panelY desiredXdistanceFromPanel) 1000))
             (send *ri* :go-pos 0 targetY 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
             (unix:usleep (ceiling (* targetY 1000)))
@@ -278,14 +279,16 @@ p    (setq term2 (*
             ;; (move-base-side (* (+ panelY desiredXdistanceFromPanel) 1000) :use-ri t)
             (send *ri* :go-pos targetX 0 0 (floor targetX)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
             (unix:usleep (ceiling (* targetX 1000)))
-            ;; (move-base (* (+ panelX desiredYdistanceFromPanel) 1000) 0 :use-ri t)
+            (send *ri* :go-pos 0 0 (/ -PI 2) 2000) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+            (unix:usleep 2000000)
+            
             )
         (progn ;; panel to the left 
           ;;(send *ri* :go-pos 0 0 (deg2rad 90))
           (move-base 0 (deg2rad 90) :use-ri t)
           (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
             (incf search-motion-count)
-            (search-base-motion :right search-motion-count)
+            (search-base-motion :left search-motion-count)
             )
           (setq targetY (* (- panelY desiredXdistanceFromPanel) 1000))
           (send *ri* :go-pos 0 targetY 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
@@ -295,6 +298,8 @@ p    (setq term2 (*
           (send *ri* :go-pos targetX 0 0 (floor targetX)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
           ;; (move-base (* (- panelX desiredYdistanceFromPanel) 1000) 0 :use-ri t)
           (unix:usleep (ceiling (* targetX 1000)))
+          (send *ri* :go-pos 0 0 (/ PI 2) 2000) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
+          (unix:usleep 2000000)
           )
         )
       )
