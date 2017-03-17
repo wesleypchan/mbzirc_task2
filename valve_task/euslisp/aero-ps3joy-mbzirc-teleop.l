@@ -334,11 +334,15 @@
       (progn
           (if (or (> (abs LStick_UD) stick_thre) (> (abs LStick_LR) stick_thre) (> (abs RStick_LR) stick_thre))
                   (progn
-                      (if (< L2 trigger_thre) ;; if L2 pressed, fine mode 
+                      (if (< L2 trigger_thre) ;; if L2 pressed, boost mode 
                               (progn
-                                  (setq moveBaseGainX 200)
+                                  ;; (setq moveBaseGainX 200)
+                                  ;; (setq moveBaseGainY 20)
+                                  ;; (setq moveBaseGainTheta 200)
+                                  (setq moveBaseGainX 400)
                                   (setq moveBaseGainY 20)
                                   (setq moveBaseGainTheta 200)
+
                                   )
                           (progn ;; regular speed
                               (setq moveBaseGainX 10)
