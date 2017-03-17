@@ -248,6 +248,33 @@
 
 (defun far-range-approach (startPanelFromWallX startPanelY &key (max-side-motion-time 3) (side-motion-dist 5000) (x-motion-dist 5000))
 
+    (setq initalSideMove 0)
+    (if (and (>= startPanelY 0)
+             (<= startPanelY -3))
+            (progn
+                (send *ri* :go-pos 0 0 (deg2rad -90) 2000)
+                (unix:sleep 2)
+                (send *ri* :go-pos 3000 0 0 2000)
+                (unix:sleep 2)
+                (send *ri* :go-pos 0 0 (deg2rad -0) 2000)
+                (unix:sleep 2)
+                (setq initalSideMove 3)
+                )
+        )
+    (if (and (> startPanelY 0)
+             (<= startPanelY 3))
+            (progn
+                (send *ri* :go-pos 0 0 (deg2rad 90) 2000)
+                (unix:sleep 2)
+                (send *ri* :go-pos 3000 0 0 2000)
+                (unix:sleep 2)
+                (send *ri* :go-pos 0 0 (deg2rad 90) 2000)
+                (unix:sleep 2)
+                (setq initalSideMove -3)
+                )
+        )
+    
+    
     (setq desiredXdistanceFromPanel 2.0) ;; how far to have the robot stop in front of the panel before fine adjuesting
     (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
     
@@ -261,39 +288,30 @@
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
     (setq approachVel 25)
     (move-to-wall-front targetDistFromWall approachVel)
-    
-    (let ((search-motion-count 0))
-      (if (< startPanelY 0) ;; panel to the right
-          (progn
-            (send *ri* :go-pos 0 0 (deg2rad -90) 2000)
-            (unix:sleep 4)
-            (while (not (findPanelLocation :right)) ;; after calling this panelY and panelX are set according to the detection result
-              (incf search-motion-count)
-              (search-base-motion :right search-motion-count)
-              (unix:sleep 4)
-              )
 
-            (setq targetY (* (+ panelY desiredXdistanceFromPanel) 1000))
-            (send *ri* :go-pos 0 targetY 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdist
-            (unix:usleep (ceiling (* targetY 1000)))
-            (setq targetX (* (+ panelX desiredYdistanceFromPanel) 1000))
-            ;; (move-base-side (* (+ panelY desiredXdistanceFromPanel) 1000) :use-ri t)
-            (send *ri* :go-pos targetX 0 0 (floor targetX)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-            (unix:usleep (ceiling (* targetX 1000)))
-            (send *ri* :go-pos 0 0 (/ -PI 2) 2000) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
-            (unix:usleep 2000000)
-            
+    (send *ri* :go-pos 0 0 (deg2rad -90) 2000)
+    (unix:sleep 3)
+    (if (< startPanelY 0) ;; panel to the right
+            (progn
+            (send *ri* :go-pos (* (+ (- startPanelY) initialSideMove) 1000) 0 0) 
+            (unix:usleep 2000000)            
             )
-        (progn ;; panel to the left 
-          (send *ri* :go-pos 0 0 (deg2rad 90) 2000)
-          (unix:sleep 4)
-          (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
-            (incf search-motion-count)
-            (search-base-motion :left search-motion-count)
-            (unix:sleep 4)
+        (progn
+            (send *ri* :go-pos (* (- startPanelY initialSideMove) 1000) 0 0) 
+            (unix:usleep 2000000)            
             )
+        )
 
-          (send *ri* :go-pos (* startPanelY) 0 0 2000)
+        ;; (progn ;; panel to the left 
+          ;; (send *ri* :go-pos 0 0 (deg2rad 90) 2000)
+          ;; (unix:sleep 4)
+          ;; (while (not (findPanelLocation :left)) ;; after calling this panelY and panelX are set according to the detection result
+            ;; (incf search-motion-count)
+            ;; (search-base-motion :left search-motion-count)
+            ;; (unix:sleep 4)
+            ;; )
+
+          ;; (send *ri* :go-pos (* startPanelY) 0 0 2000)
           ;; (setq targetY (* (- panelY desiredXdistanceFromPanel) 1000))
           ;; (send *ri* :go-pos 0 (* targetY 1000) 0 (floor targetY)) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelY and desiredXdistp
           ;; (unix:usleep (ceiling (* targetY 1000)))
@@ -303,9 +321,9 @@
           ;; (unix:usleep (ceiling (* targetX 1000)))
           ;; (send *ri* :go-pos 0 0 (/ PI 2) 2000) ;; note the robot is rotated 90 deg at this point, so that's why we are using PanelX and desiredYdist
           ;; (unix:usleep 2000000)
-          )
-        )
-      )
+          ;; )
+        ;; )
+      ;; )
     t
     )
 
