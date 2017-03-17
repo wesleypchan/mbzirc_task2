@@ -18,7 +18,9 @@
     )
 
 (defun getSingleYDist (index) 
+
     (* (elt ranges index) (- (sin  (+ angle_min (* index angle_increment)))))
+
     )
 
 (defun getIndex ()
@@ -36,11 +38,13 @@
         ;; (format t "index ~f : angle ~f : xdist ~f~%" index
         ;;                                              (rad2deg (+ angle_min (* index angle_increment)))
         ;;                                              (getSingleXDist index))
+
         (if ( < (getSingleXDist index) distX)
                 (setq pointsWithinDistXcount (+ pointsWithinDistXcount 1.0)))
         (setq index (+ index 1))
         )
     ;; (format t "% points with in distx ~f : ~f~%" distx (/ pointsWithinDistXcount (- maxIndex minIndex)))
+
     (/ pointsWithinDistXcount (- maxIndex minIndex)) 
     )
 
@@ -114,6 +118,7 @@
     (setq ranges (send msg :ranges))
  
     ;; (format t "x front  ~f~%" (getsinglexdist 360))
+
     (isthereobstacleWithinDist 2.0)
       
     )
@@ -145,6 +150,7 @@
     (setq curr_xvel 0)
     (setq decelerationDist 0.5)
     (while (< (isThereObstacleWithinDist (+ xdist decelerationDist)) 0.5)
+
         (ros::spin-once)
         ;; (format t "isThereObstacleWithinDist ~f returned ~f~%" xdist isThereObstacleWithinDistResult)
         ;; (format t "moving base")
@@ -286,12 +292,12 @@
     (setq desiredYdistanceFromPanel 0.0) ;; y offset of where to have the robot stop in front of the panel before fine adjuesting
     
     (setq minDistFromWall 1.0)
+
     (if (< targetDistFromWall minDistFromWall)
             (setq targetDistFromWall minDistFromWall))
     (format t "targetDistFromWall ~f~%" targetDistFromWall)
     (setq approachVel 50)
     (move-to-wall-front targetDistFromWall approachVel)
-
 
     (unix:sleep 3)
     (if (< startPanelY 0) ;; panel to the right
