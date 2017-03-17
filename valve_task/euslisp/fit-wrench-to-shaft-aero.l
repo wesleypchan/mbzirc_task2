@@ -192,7 +192,7 @@
        (setq approach-scan-distance 150)
        (setq tangent-scan-distance 50)
        (setq approach-inc-dist 1.0)
-       (setq tangent-inc-dist 1.0)       
+       (setq tangent-inc-dist 3.0)       
        
        (setq tangent-index 0) ;; index for scanning in the tangent direction
        (setq target-pose (send *robot* arm :end-coords :copy-worldcoords))
@@ -273,6 +273,7 @@
                    )
            (inc tangent-index)
            )
+       nil
        ) ;; end STATE: scan for contact
 
 (defun detect-shaft-center-state ()
